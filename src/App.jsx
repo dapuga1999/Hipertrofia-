@@ -99,6 +99,7 @@ function mediaCandidates(exId, videos, custom) {
 const EXERCISES = {
   "incline-dumbbell-curl": {
     id: "incline-dumbbell-curl",
+    inRoutine: true,
     name: "Curl inclinado con mancuernas",
     short: "Curl inclinado",
     muscleGroup: "Bíceps",
@@ -131,6 +132,7 @@ const EXERCISES = {
   },
   "preacher-curl": {
     id: "preacher-curl",
+    inRoutine: true,
     name: "Curl predicador",
     short: "Curl predicador",
     muscleGroup: "Bíceps",
@@ -162,6 +164,7 @@ const EXERCISES = {
   },
   "incline-dumbbell-press": {
     id: "incline-dumbbell-press",
+    inRoutine: true,
     name: "Press inclinado con mancuernas",
     short: "Press inclinado",
     muscleGroup: "Pecho",
@@ -194,6 +197,7 @@ const EXERCISES = {
   },
   "machine-chest-press": {
     id: "machine-chest-press",
+    inRoutine: true,
     name: "Press plano en máquina",
     short: "Press plano máquina",
     muscleGroup: "Pecho",
@@ -225,6 +229,7 @@ const EXERCISES = {
   },
   "cable-fly": {
     id: "cable-fly",
+    inRoutine: true,
     name: "Aperturas en polea",
     short: "Aperturas polea",
     muscleGroup: "Pecho",
@@ -256,6 +261,7 @@ const EXERCISES = {
   },
   "lateral-raise": {
     id: "lateral-raise",
+    inRoutine: true,
     name: "Elevaciones laterales",
     short: "Elevaciones laterales",
     muscleGroup: "Hombro",
@@ -288,6 +294,7 @@ const EXERCISES = {
   },
   "reverse-pec-deck": {
     id: "reverse-pec-deck",
+    inRoutine: true,
     name: "Reverse pec deck",
     short: "Reverse pec deck",
     muscleGroup: "Hombro",
@@ -319,6 +326,7 @@ const EXERCISES = {
   },
   "overhead-triceps-extension": {
     id: "overhead-triceps-extension",
+    inRoutine: true,
     name: "Extensión de tríceps por encima de la cabeza",
     short: "Extensión sobre cabeza",
     muscleGroup: "Tríceps",
@@ -350,6 +358,7 @@ const EXERCISES = {
   },
   "triceps-pressdown": {
     id: "triceps-pressdown",
+    inRoutine: true,
     name: "Pressdown en polea",
     short: "Pressdown",
     muscleGroup: "Tríceps",
@@ -380,6 +389,7 @@ const EXERCISES = {
   },
   "unilateral-triceps-extension": {
     id: "unilateral-triceps-extension",
+    inRoutine: true,
     name: "Extensión unilateral de tríceps",
     short: "Extensión unilateral",
     muscleGroup: "Tríceps",
@@ -411,6 +421,7 @@ const EXERCISES = {
   },
   "lat-pulldown": {
     id: "lat-pulldown",
+    inRoutine: true,
     name: "Jalón al pecho",
     short: "Jalón al pecho",
     muscleGroup: "Espalda",
@@ -442,6 +453,7 @@ const EXERCISES = {
   },
   "chest-supported-row": {
     id: "chest-supported-row",
+    inRoutine: true,
     name: "Remo con pecho apoyado",
     short: "Remo pecho apoyado",
     muscleGroup: "Espalda",
@@ -473,6 +485,7 @@ const EXERCISES = {
   },
   "unilateral-cable-row": {
     id: "unilateral-cable-row",
+    inRoutine: true,
     name: "Remo unilateral en polea",
     short: "Remo unilateral",
     muscleGroup: "Espalda",
@@ -504,6 +517,7 @@ const EXERCISES = {
   },
   "cable-pullover": {
     id: "cable-pullover",
+    inRoutine: true,
     name: "Pullover en polea",
     short: "Pullover polea",
     muscleGroup: "Espalda",
@@ -535,6 +549,7 @@ const EXERCISES = {
   },
   "pullup-neutral-pulldown": {
     id: "pullup-neutral-pulldown",
+    inRoutine: true,
     name: "Dominadas o jalón neutro",
     short: "Dominadas / jalón neutro",
     muscleGroup: "Espalda",
@@ -566,6 +581,7 @@ const EXERCISES = {
   },
   "machine-row": {
     id: "machine-row",
+    inRoutine: true,
     name: "Remo en máquina",
     short: "Remo máquina",
     muscleGroup: "Espalda",
@@ -596,6 +612,7 @@ const EXERCISES = {
   },
   "hip-abduction": {
     id: "hip-abduction",
+    inRoutine: true,
     name: "Abducción en máquina",
     short: "Abducción",
     muscleGroup: "Pierna",
@@ -627,6 +644,7 @@ const EXERCISES = {
   },
   "lying-leg-curl": {
     id: "lying-leg-curl",
+    inRoutine: true,
     name: "Curl femoral tumbado",
     short: "Curl femoral",
     muscleGroup: "Pierna",
@@ -658,6 +676,7 @@ const EXERCISES = {
   },
   "leg-extension": {
     id: "leg-extension",
+    inRoutine: true,
     name: "Extensión de cuádriceps",
     short: "Extensión cuádriceps",
     muscleGroup: "Pierna",
@@ -689,6 +708,7 @@ const EXERCISES = {
   },
   "hack-squat": {
     id: "hack-squat",
+    inRoutine: true,
     name: "Hack squat",
     short: "Hack squat",
     muscleGroup: "Pierna",
@@ -721,6 +741,7 @@ const EXERCISES = {
   },
   "romanian-deadlift": {
     id: "romanian-deadlift",
+    inRoutine: true,
     name: "Peso muerto rumano",
     short: "Peso muerto rumano",
     muscleGroup: "Pierna",
@@ -753,6 +774,7 @@ const EXERCISES = {
   },
   "calf-raise": {
     id: "calf-raise",
+    inRoutine: true,
     name: "Gemelos",
     short: "Gemelos",
     muscleGroup: "Pierna",
@@ -782,6 +804,981 @@ const EXERCISES = {
     cues: ["Pausa abajo.", "Sube a la punta.", "Sin rebote."],
     alternatives: ["Gemelos sentado (más sóleo)", "Gemelos en prensa", "Gemelos a una pierna con mancuerna"],
   },
+
+  /* --- PECHO (ampliación) --- */
+  "barbell-bench-press": {
+    id: "barbell-bench-press",
+    name: "Press de banca con barra",
+    short: "Press banca barra",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor"],
+    secondary: ["Deltoides anterior", "Tríceps"],
+    howTo: "El básico de empuje horizontal. Permite mover más carga que con mancuernas gracias a la estabilidad de la barra.",
+    setup: ["Escápulas retraídas contra el banco.", "Pies firmes en el suelo, ligero arco lumbar natural.", "Agarre algo más ancho que los hombros."],
+    execution: ["Baja la barra controlada hasta rozar el pecho.", "Codos a 45-60° del tronco.", "Empuja hasta extender sin bloquear de golpe."],
+    mistakes: ["Rebotar la barra en el pecho.", "Despegar los glúteos del banco."],
+    cues: ["Pecho alto.", "Barra en línea recta."],
+    alternatives: ["Press con mancuernas", "Press en máquina"],
+  },
+  "dumbbell-bench-press": {
+    id: "dumbbell-bench-press",
+    name: "Press de banca con mancuernas",
+    short: "Press banca mancuernas",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor"],
+    secondary: ["Deltoides anterior", "Tríceps"],
+    howTo: "Mismo patrón que con barra pero con mayor recorrido y trabajo de estabilización a cada lado.",
+    setup: ["Mancuernas a la altura del pecho, codos abajo.", "Escápulas retraídas.", "Pies firmes en el suelo."],
+    execution: ["Empuja las mancuernas hacia arriba y ligeramente hacia dentro.", "Extiende sin chocar las mancuernas.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Bajar demasiado y forzar el hombro.", "Perder el control en la fase excéntrica."],
+    cues: ["Codos bajo las muñecas.", "Trayectoria en arco."],
+    alternatives: ["Press con barra", "Press inclinado con mancuernas"],
+  },
+  "incline-barbell-press": {
+    id: "incline-barbell-press",
+    name: "Press inclinado con barra",
+    short: "Press inclinado barra",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor (porción clavicular)"],
+    secondary: ["Deltoides anterior", "Tríceps"],
+    howTo: "Versión con barra del press inclinado, prioriza carga sobre la parte alta del pecho.",
+    setup: ["Banco a 30-45°.", "Agarre a la anchura de los hombros.", "Escápulas fijas contra el banco."],
+    execution: ["Baja la barra a la parte alta del pecho.", "Empuja en línea recta hacia arriba.", "No bloquees de golpe arriba."],
+    mistakes: ["Inclinar el banco más de 45° (pasa el trabajo al hombro).", "Rebotar abajo."],
+    cues: ["Barra hacia la clavícula.", "Codos ligeramente cerrados."],
+    alternatives: ["Press inclinado con mancuernas", "Press inclinado en máquina"],
+  },
+  "decline-bench-press": {
+    id: "decline-bench-press",
+    name: "Press declinado con barra",
+    short: "Press declinado",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor (porción esternal/inferior)"],
+    secondary: ["Tríceps", "Deltoides anterior"],
+    howTo: "Empuje en banco declinado, enfatiza la parte baja del pectoral.",
+    setup: ["Pies asegurados en los topes del banco.", "Escápulas retraídas.", "Agarre a la anchura de los hombros."],
+    execution: ["Baja la barra a la parte baja del pecho.", "Empuja en línea recta.", "Control total en la bajada."],
+    mistakes: ["Recorrido corto por miedo a la posición.", "Mover mucho la cabeza."],
+    cues: ["Barra hacia el esternón bajo.", "Ritmo constante."],
+    alternatives: ["Press plano con barra", "Fondos en paralelas"],
+  },
+  "dips-chest": {
+    id: "dips-chest",
+    name: "Fondos en paralelas (pecho)",
+    short: "Fondos pecho",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor (porción inferior)"],
+    secondary: ["Tríceps", "Deltoides anterior"],
+    howTo: "Inclinando el tronco hacia delante, los fondos cargan más el pectoral que el tríceps.",
+    setup: ["Tronco inclinado hacia delante.", "Codos ligeramente abiertos.", "Piernas cruzadas o flexionadas atrás."],
+    execution: ["Baja hasta sentir estiramiento en el pecho.", "Empuja volviendo a extender los brazos.", "No bloquees bruscamente arriba."],
+    mistakes: ["Bajar demasiado y cargar el hombro.", "Mantener el tronco vertical (pasa el trabajo al tríceps)."],
+    cues: ["Inclínate hacia delante.", "Codos afuera."],
+    alternatives: ["Press declinado", "Aperturas en polea"],
+  },
+  "dumbbell-pullover": {
+    id: "dumbbell-pullover",
+    name: "Pullover con mancuerna",
+    short: "Pullover",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor", "Dorsal ancho"],
+    secondary: ["Tríceps (cabeza larga)", "Serrato anterior"],
+    howTo: "Movimiento de arco por encima de la cabeza, útil como aislamiento de pecho y dorsal a la vez.",
+    setup: ["Tumbado transversal en el banco, solo hombros apoyados.", "Mancuerna sujeta con ambas manos.", "Codos con flexión fija y suave."],
+    execution: ["Baja el peso en arco por detrás de la cabeza.", "Siente el estiramiento en el pecho y dorsal.", "Vuelve trazando el mismo arco."],
+    mistakes: ["Flexionar y extender el codo (lo convierte en tríceps).", "Arquear demasiado la zona lumbar."],
+    cues: ["Codos fijos.", "Trayectoria en arco, no en línea recta."],
+    alternatives: ["Cable pullover", "Aperturas en polea"],
+  },
+  "smith-machine-press": {
+    id: "smith-machine-press",
+    name: "Press de banca en multipower",
+    short: "Press multipower",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor"],
+    secondary: ["Deltoides anterior", "Tríceps"],
+    howTo: "Press guiado en máquina Smith, útil para entrenar cerca del fallo con seguridad y sin estabilizar la barra.",
+    setup: ["Banco centrado bajo la barra guiada.", "Escápulas retraídas.", "Pies firmes en el suelo."],
+    execution: ["Desengancha y baja controlado al pecho.", "Empuja en línea recta hacia arriba.", "Vuelve a enganchar al terminar la serie."],
+    mistakes: ["Colocar el banco descentrado respecto a la barra.", "Usar demasiado peso por la sensación de seguridad."],
+    cues: ["Trayectoria fija, tú controlas el ritmo.", "Pecho alto."],
+    alternatives: ["Press con barra libre", "Press en máquina"],
+  },
+  "flat-dumbbell-fly": {
+    id: "flat-dumbbell-fly",
+    name: "Aperturas con mancuernas en banco plano",
+    short: "Aperturas mancuernas",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor"],
+    secondary: ["Deltoides anterior"],
+    howTo: "Aislamiento del pecho en banco plano, con más estiramiento que la variante en polea.",
+    setup: ["Mancuernas arriba con codos casi extendidos.", "Flexión de codo fija y ligera.", "Escápulas retraídas contra el banco."],
+    execution: ["Abre los brazos en arco hasta el estiramiento.", "Junta las mancuernas arriba sin chocarlas.", "No las conviertas en un press."],
+    mistakes: ["Flexionar y extender el codo como en un press.", "Bajar demasiado y forzar el hombro."],
+    cues: ["Codo fijo todo el recorrido.", "Abraza un tronco grande."],
+    alternatives: ["Aperturas en polea", "Pec deck"],
+  },
+  "cable-crossover": {
+    id: "cable-crossover",
+    name: "Cruce de poleas",
+    short: "Cruce de poleas",
+    muscleGroup: "Pecho",
+    primary: ["Pectoral mayor"],
+    secondary: ["Deltoides anterior"],
+    howTo: "Variante de aperturas con poleas altas cruzando las manos abajo, tensión constante en todo el recorrido.",
+    setup: ["Poleas altas, un pie adelantado.", "Tronco ligeramente inclinado hacia delante.", "Codos con flexión fija."],
+    execution: ["Junta las manos por delante y abajo del cuerpo.", "Cruza ligeramente al final.", "Vuelve controlado hasta el estiramiento."],
+    mistakes: ["Usar demasiado peso y perder el recorrido.", "Balancear el cuerpo."],
+    cues: ["Arco amplio.", "Aprieta y cruza abajo."],
+    alternatives: ["Aperturas con mancuernas", "Pec deck"],
+  },
+
+  /* --- ESPALDA (ampliación) --- */
+  "conventional-deadlift": {
+    id: "conventional-deadlift",
+    name: "Peso muerto convencional",
+    short: "Peso muerto",
+    muscleGroup: "Espalda",
+    primary: ["Erectores espinales", "Dorsal ancho"],
+    secondary: ["Glúteo", "Isquiotibiales", "Trapecio"],
+    howTo: "El ejercicio de fuerza global por excelencia. Exige técnica cuidada por la carga que mueve.",
+    setup: ["Barra pegada a las espinillas.", "Espalda neutra, pecho alto.", "Agarre justo fuera de las piernas."],
+    execution: ["Empuja el suelo con las piernas mientras la barra sube pegada al cuerpo.", "Extiende cadera y rodillas a la vez.", "Baja controlado invirtiendo el patrón."],
+    mistakes: ["Redondear la zona lumbar.", "Alejar la barra del cuerpo."],
+    cues: ["Barra pegada a la pierna.", "Pecho alto, espalda neutra."],
+    alternatives: ["Peso muerto rumano", "Peso muerto piernas rígidas"],
+  },
+  "barbell-row": {
+    id: "barbell-row",
+    name: "Remo con barra",
+    short: "Remo barra",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho", "Trapecio medio"],
+    secondary: ["Romboides", "Bíceps"],
+    howTo: "Tirón horizontal con barra, tronco inclinado. Muy efectivo para espesor de espalda.",
+    setup: ["Tronco inclinado unos 45°, espalda neutra.", "Barra colgando con brazos extendidos.", "Rodillas con flexión suave."],
+    execution: ["Tira de la barra hacia el abdomen.", "Aprieta las escápulas arriba.", "Baja controlado sin perder la postura."],
+    mistakes: ["Usar impulso con la zona lumbar.", "Enderezar el tronco en cada repetición."],
+    cues: ["Codos hacia atrás.", "Espalda fija todo el recorrido."],
+    alternatives: ["Remo en máquina T", "Remo en polea sentado"],
+  },
+  "seated-cable-row": {
+    id: "seated-cable-row",
+    name: "Remo en polea sentado",
+    short: "Remo polea",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho", "Trapecio medio"],
+    secondary: ["Romboides", "Bíceps"],
+    howTo: "Tirón horizontal guiado, fácil de dosificar y con tensión constante.",
+    setup: ["Sentado con rodillas ligeramente flexionadas.", "Espalda recta, pecho alto.", "Agarre firme al frente."],
+    execution: ["Tira hacia el abdomen llevando los codos atrás.", "Aprieta las escápulas al final.", "Vuelve controlado sin redondear la espalda."],
+    mistakes: ["Balancear el tronco adelante y atrás.", "Encoger los hombros al tirar."],
+    cues: ["Pecho al frente.", "Tira con la espalda, no con el brazo."],
+    alternatives: ["Remo con barra", "Remo en máquina"],
+  },
+  "close-grip-pulldown-supinated": {
+    id: "close-grip-pulldown-supinated",
+    name: "Jalón al pecho agarre cerrado supino",
+    short: "Jalón cerrado supino",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho"],
+    secondary: ["Bíceps", "Romboides"],
+    howTo: "Variante de jalón con agarre estrecho y supino, mayor implicación del bíceps y buena sensación de contracción dorsal.",
+    setup: ["Agarre cerrado, palmas hacia ti.", "Tronco ligeramente reclinado.", "Piernas fijas bajo los soportes."],
+    execution: ["Tira de la barra hacia la parte alta del pecho.", "Lleva los codos hacia abajo y atrás.", "Vuelve controlado hasta el estiramiento."],
+    mistakes: ["Usar impulso con el tronco.", "Tirar detrás de la nuca."],
+    cues: ["Codos hacia las caderas.", "Pecho al encuentro de la barra."],
+    alternatives: ["Jalón al pecho agarre supino", "Dominadas"],
+  },
+  "pull-up": {
+    id: "pull-up",
+    name: "Dominadas",
+    short: "Dominadas",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho"],
+    secondary: ["Bíceps", "Romboides", "Trapecio"],
+    howTo: "Tirón vertical con el propio peso corporal, uno de los mejores ejercicios de espalda que existen.",
+    setup: ["Agarre a la anchura de los hombros o algo más ancho.", "Cuerpo estable, sin balanceo.", "Core activo."],
+    execution: ["Tira hasta que la barbilla pase la barra.", "Lleva los codos hacia abajo y atrás.", "Baja controlado hasta la extensión completa."],
+    mistakes: ["Usar impulso o balanceo (kipping) fuera de contexto.", "Recorrido corto arriba."],
+    cues: ["Codos hacia los bolsillos.", "Pecho hacia la barra."],
+    alternatives: ["Jalón al pecho", "Dominadas asistidas en máquina"],
+  },
+  "t-bar-row": {
+    id: "t-bar-row",
+    name: "Remo en máquina T",
+    short: "Remo T",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho", "Trapecio medio"],
+    secondary: ["Romboides", "Bíceps"],
+    howTo: "Remo con apoyo en el pecho o tronco inclinado fijo, permite cargar mucho peso con la zona lumbar protegida.",
+    setup: ["Pecho apoyado o tronco fijo según la máquina.", "Agarre firme en las asas.", "Espalda neutra."],
+    execution: ["Tira del peso hacia el abdomen.", "Aprieta las escápulas arriba.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Tirar con tirones bruscos.", "Encoger los hombros en vez de llevar los codos atrás."],
+    cues: ["Codos pegados al cuerpo.", "Aprieta arriba un instante."],
+    alternatives: ["Remo con barra", "Remo en polea sentado"],
+  },
+  "single-arm-dumbbell-row": {
+    id: "single-arm-dumbbell-row",
+    name: "Remo a una mano con mancuerna",
+    short: "Remo a una mano",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho"],
+    secondary: ["Romboides", "Bíceps"],
+    howTo: "Remo unilateral apoyado en banco, permite un recorrido más largo y corregir descompensaciones.",
+    setup: ["Rodilla y mano de apoyo sobre el banco.", "Espalda paralela al suelo y neutra.", "Mancuerna colgando con el brazo extendido."],
+    execution: ["Tira de la mancuerna hacia la cadera.", "Lleva el codo hacia atrás pegado al cuerpo.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Rotar el tronco para ayudarse.", "Tirar hacia el hombro en vez de hacia la cadera."],
+    cues: ["Codo pegado al cuerpo.", "Tira con la espalda."],
+    alternatives: ["Remo en polea sentado", "Remo con barra"],
+  },
+  "straight-arm-pulldown": {
+    id: "straight-arm-pulldown",
+    name: "Jalón con brazos rectos",
+    short: "Jalón brazos rectos",
+    muscleGroup: "Espalda",
+    primary: ["Dorsal ancho"],
+    secondary: ["Serrato anterior", "Tríceps (cabeza larga)"],
+    howTo: "Aislamiento puro del dorsal en polea alta, sin implicar apenas el bíceps.",
+    setup: ["De pie frente a la polea alta con barra o cuerda.", "Codos con flexión mínima y fija.", "Ligera inclinación del tronco."],
+    execution: ["Baja el peso en arco hasta los muslos.", "Mantén los codos casi extendidos todo el recorrido.", "Vuelve controlado hasta el estiramiento."],
+    mistakes: ["Flexionar el codo y convertirlo en un jalón normal.", "Usar demasiado peso y perder el recorrido."],
+    cues: ["Codos fijos.", "Empuja con el dorsal, no con el brazo."],
+    alternatives: ["Pullover con mancuerna", "Jalón al pecho"],
+  },
+  "back-extension": {
+    id: "back-extension",
+    name: "Hiperextensión lumbar",
+    short: "Hiperextensión",
+    muscleGroup: "Espalda",
+    primary: ["Erectores espinales"],
+    secondary: ["Glúteo", "Isquiotibiales"],
+    howTo: "Extensión de tronco en banco romano, fortalece la zona lumbar y protege la espalda en otros ejercicios.",
+    setup: ["Caderas apoyadas en el borde del banco.", "Piernas fijas bajo los rodillos.", "Cuerpo en línea recta al empezar."],
+    execution: ["Baja el tronco controlado hasta sentir el estiramiento.", "Sube hasta la línea recta, sin hiperextender.", "Aprieta glúteo e isquios al subir."],
+    mistakes: ["Hiperextender la zona lumbar arriba.", "Subir de golpe con impulso."],
+    cues: ["Sube hasta la línea recta y para.", "Aprieta glúteo arriba."],
+    alternatives: ["Peso muerto rumano", "Buenos días"],
+  },
+
+  /* --- HOMBRO (ampliación, sin presses por encima de la cabeza) --- */
+  "front-raise": {
+    id: "front-raise",
+    name: "Elevación frontal con mancuernas",
+    short: "Elevación frontal",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides anterior"],
+    secondary: ["Pectoral (porción clavicular)"],
+    howTo: "Aislamiento de la parte frontal del hombro, con poco peso y recorrido controlado.",
+    setup: ["De pie, mancuernas por delante de los muslos.", "Codos con flexión mínima y fija.", "Core activo, sin balanceo."],
+    execution: ["Sube hasta la altura del hombro.", "Pausa breve arriba.", "Baja controlado sin dejar caer el peso."],
+    mistakes: ["Usar impulso con el cuerpo.", "Subir por encima de la altura del hombro."],
+    cues: ["Sube con control.", "Sin balanceo del tronco."],
+    alternatives: ["Elevación frontal en polea", "Elevación frontal con disco"],
+  },
+  "cable-lateral-raise": {
+    id: "cable-lateral-raise",
+    name: "Elevación lateral en polea",
+    short: "Elevación lateral polea",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides lateral"],
+    secondary: ["Deltoides anterior"],
+    howTo: "Variante en polea de la elevación lateral, con tensión constante desde el primer grado del recorrido.",
+    setup: ["De costado a la polea baja.", "Brazo cruzado por delante del cuerpo al empezar.", "Codo con flexión mínima y fija."],
+    execution: ["Sube el brazo hacia el lateral hasta la altura del hombro.", "Pausa breve arriba.", "Baja controlado manteniendo la tensión."],
+    mistakes: ["Encoger el trapecio al subir.", "Usar el tronco para impulsar."],
+    cues: ["Sube el codo.", "Tensión constante, sin soltar abajo."],
+    alternatives: ["Elevaciones laterales con mancuernas", "Elevaciones en máquina"],
+  },
+  "machine-lateral-raise": {
+    id: "machine-lateral-raise",
+    name: "Elevación lateral en máquina",
+    short: "Elevación lateral máquina",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides lateral"],
+    secondary: [],
+    howTo: "Elevación lateral guiada, permite series muy cerca del fallo sin problema de estabilización.",
+    setup: ["Ajusta el asiento a la altura correcta.", "Espalda pegada al respaldo.", "Codos apoyados en las almohadillas."],
+    execution: ["Sube los brazos hasta la altura del hombro.", "Pausa breve arriba.", "Baja controlado sin soltar el peso."],
+    mistakes: ["Asiento mal ajustado.", "Subir por encima del hombro encogiendo el trapecio."],
+    cues: ["Sube con los codos.", "Ritmo constante."],
+    alternatives: ["Elevaciones laterales con mancuernas", "Elevaciones en polea"],
+  },
+  "face-pull": {
+    id: "face-pull",
+    name: "Face pull en polea",
+    short: "Face pull",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides posterior"],
+    secondary: ["Trapecio medio", "Romboides", "Rotadores externos"],
+    howTo: "Tirón hacia la cara en polea alta, clave para la salud del hombro y el equilibrio con el trabajo de empuje.",
+    setup: ["Polea a la altura de la cara con cuerda.", "Un pie adelantado, tronco firme.", "Agarre con las palmas hacia dentro."],
+    execution: ["Tira hacia la cara separando las manos.", "Rota los hombros hacia fuera al final.", "Vuelve controlado sin perder tensión."],
+    mistakes: ["Tirar solo con el brazo sin abrir los codos.", "Usar demasiado peso y perder la forma."],
+    cues: ["Codos altos.", "Rota hacia fuera al final."],
+    alternatives: ["Reverse pec deck", "Pájaros con mancuernas"],
+  },
+  "rear-delt-fly-dumbbell": {
+    id: "rear-delt-fly-dumbbell",
+    name: "Pájaros con mancuernas",
+    short: "Pájaros",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides posterior"],
+    secondary: ["Romboides", "Trapecio medio"],
+    howTo: "Aislamiento del deltoides posterior con mancuernas, inclinado hacia delante.",
+    setup: ["Tronco inclinado casi paralelo al suelo.", "Mancuernas colgando, codos con flexión mínima.", "Espalda neutra, core activo."],
+    execution: ["Abre los brazos en arco hacia atrás.", "Aprieta las escápulas al final.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Enderezar el tronco para ayudarse.", "Convertirlo en un remo flexionando el codo."],
+    cues: ["Codo casi fijo.", "Separa los codos, no juntes las manos."],
+    alternatives: ["Reverse pec deck", "Face pull"],
+  },
+  "upright-row": {
+    id: "upright-row",
+    name: "Remo al mentón en polea",
+    short: "Remo al mentón",
+    muscleGroup: "Hombro",
+    primary: ["Deltoides lateral", "Trapecio"],
+    secondary: ["Bíceps"],
+    howTo: "Tirón vertical hasta la altura del pecho-mentón, trabaja hombro lateral y trapecio.",
+    setup: ["De pie, barra o polea baja con agarre estrecho.", "Espalda neutra.", "Core activo."],
+    execution: ["Tira hacia arriba llevando los codos por delante y afuera.", "Sube hasta la altura del pecho, no más.", "Baja controlado."],
+    mistakes: ["Subir demasiado alto forzando el hombro.", "Usar impulso de piernas y cadera."],
+    cues: ["Codos guían el movimiento.", "Para a la altura del pecho."],
+    alternatives: ["Elevaciones laterales", "Encogimientos"],
+  },
+  "barbell-shrug": {
+    id: "barbell-shrug",
+    name: "Encogimientos con barra",
+    short: "Encogimientos",
+    muscleGroup: "Hombro",
+    primary: ["Trapecio superior"],
+    secondary: [],
+    howTo: "Movimiento simple de elevación de hombros, clave para el desarrollo del trapecio.",
+    setup: ["De pie, barra con agarre a la anchura de los hombros.", "Brazos extendidos y relajados.", "Core activo."],
+    execution: ["Encoge los hombros hacia las orejas.", "Pausa breve arriba.", "Baja controlado sin rotar los hombros."],
+    mistakes: ["Rotar los hombros en círculo (innecesario y puede irritar la articulación).", "Usar impulso de piernas."],
+    cues: ["Sube en línea recta.", "Pausa arriba."],
+    alternatives: ["Encogimientos con mancuernas", "Encogimientos en máquina"],
+  },
+
+  /* --- BÍCEPS (ampliación) --- */
+  "barbell-curl": {
+    id: "barbell-curl",
+    name: "Curl con barra",
+    short: "Curl barra",
+    muscleGroup: "Bíceps",
+    primary: ["Bíceps braquial"],
+    secondary: ["Braquial", "Braquiorradial"],
+    howTo: "El curl clásico, permite mover más carga que con mancuernas.",
+    setup: ["De pie, barra con agarre supino a la anchura de los hombros.", "Codos pegados al costado.", "Core activo, sin balanceo."],
+    execution: ["Flexiona el codo subiendo la barra.", "Aprieta arriba un instante.", "Baja controlado hasta la extensión completa."],
+    mistakes: ["Balancear el cuerpo para impulsar.", "Adelantar los codos al subir."],
+    cues: ["Codos fijos al costado.", "Sin impulso de cadera."],
+    alternatives: ["Curl con barra EZ", "Curl con mancuernas"],
+  },
+  "hammer-curl": {
+    id: "hammer-curl",
+    name: "Curl martillo",
+    short: "Curl martillo",
+    muscleGroup: "Bíceps",
+    primary: ["Braquial", "Braquiorradial"],
+    secondary: ["Bíceps braquial"],
+    howTo: "Agarre neutro que prioriza el braquial y el antebrazo sobre el bíceps.",
+    setup: ["De pie, mancuernas con agarre neutro.", "Codos pegados al costado.", "Core activo."],
+    execution: ["Flexiona el codo manteniendo el agarre neutro.", "Sube hasta contraer.", "Baja controlado."],
+    mistakes: ["Balancear el cuerpo.", "Abrir los codos al subir."],
+    cues: ["Pulgares hacia arriba todo el recorrido.", "Codos quietos."],
+    alternatives: ["Curl martillo en polea", "Curl con barra"],
+  },
+  "cable-curl": {
+    id: "cable-curl",
+    name: "Curl en polea baja",
+    short: "Curl polea",
+    muscleGroup: "Bíceps",
+    primary: ["Bíceps braquial"],
+    secondary: ["Braquial"],
+    howTo: "Curl con tensión constante gracias a la polea, buena sensación de contracción.",
+    setup: ["De pie frente a la polea baja con barra recta o EZ.", "Codos pegados al costado.", "Core activo."],
+    execution: ["Flexiona el codo subiendo la barra.", "Aprieta arriba.", "Baja controlado sin soltar la tensión."],
+    mistakes: ["Adelantar los codos.", "Usar impulso del tronco."],
+    cues: ["Tensión constante.", "Codos fijos."],
+    alternatives: ["Curl con barra", "Curl con mancuernas"],
+  },
+  "concentration-curl": {
+    id: "concentration-curl",
+    name: "Curl concentrado",
+    short: "Curl concentrado",
+    muscleGroup: "Bíceps",
+    primary: ["Bíceps braquial"],
+    secondary: ["Braquial"],
+    howTo: "Curl unilateral sentado con el codo apoyado en el muslo, máximo aislamiento y control.",
+    setup: ["Sentado, codo apoyado en la cara interna del muslo.", "Brazo colgando con el codo casi extendido.", "Tronco ligeramente inclinado."],
+    execution: ["Flexiona el codo subiendo la mancuerna.", "Aprieta arriba un instante.", "Baja controlado hasta la extensión completa."],
+    mistakes: ["Mover el codo del apoyo.", "Usar el hombro para ayudarse."],
+    cues: ["Codo fijo en el muslo.", "Solo se mueve el antebrazo."],
+    alternatives: ["Curl predicador", "Curl con mancuernas"],
+  },
+  "spider-curl": {
+    id: "spider-curl",
+    name: "Curl araña",
+    short: "Curl araña",
+    muscleGroup: "Bíceps",
+    primary: ["Bíceps braquial (porción corta)"],
+    secondary: ["Braquial"],
+    howTo: "Curl tumbado boca abajo en banco inclinado, con el brazo por delante y sin ayuda del hombro.",
+    setup: ["Tumbado boca abajo en banco inclinado a 45-60°.", "Brazos colgando por delante, agarre supino.", "Pecho apoyado en todo momento."],
+    execution: ["Flexiona el codo subiendo el peso.", "Aprieta arriba sin despegar el pecho.", "Baja controlado hasta la extensión."],
+    mistakes: ["Despegar el pecho del banco.", "Recorrido corto arriba."],
+    cues: ["Pecho pegado al banco.", "Sube apretando."],
+    alternatives: ["Curl predicador", "Curl concentrado"],
+  },
+  "drag-curl": {
+    id: "drag-curl",
+    name: "Curl arrastrado con barra",
+    short: "Curl arrastrado",
+    muscleGroup: "Bíceps",
+    primary: ["Bíceps braquial"],
+    secondary: ["Braquial"],
+    howTo: "El codo va hacia atrás mientras la barra 'arrastra' pegada al cuerpo, quita tensión del hombro y la pone toda en el bíceps.",
+    setup: ["De pie, barra con agarre supino.", "Codos pegados al cuerpo.", "Core activo."],
+    execution: ["Sube la barra arrastrándola pegada al cuerpo.", "Lleva el codo hacia atrás según sube.", "Baja por el mismo camino controlado."],
+    mistakes: ["Separar la barra del cuerpo (lo convierte en un curl normal).", "Usar impulso."],
+    cues: ["Barra pegada al cuerpo.", "El codo va hacia atrás, no hacia delante."],
+    alternatives: ["Curl con barra", "Curl en polea baja"],
+  },
+
+  /* --- TRÍCEPS (ampliación) --- */
+  "bench-dips": {
+    id: "bench-dips",
+    name: "Fondos en banco",
+    short: "Fondos banco",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial"],
+    secondary: ["Deltoides anterior"],
+    howTo: "Ejercicio con el propio peso corporal, manos apoyadas en un banco detrás del cuerpo.",
+    setup: ["Manos en el borde del banco, dedos hacia delante.", "Piernas extendidas o flexionadas según la dificultad.", "Cuerpo cerca del banco."],
+    execution: ["Baja flexionando los codos hacia atrás.", "Baja hasta 90° de flexión aproximadamente.", "Empuja para extender los brazos."],
+    mistakes: ["Bajar demasiado y forzar el hombro.", "Alejar demasiado los pies (sube la dificultad de golpe)."],
+    cues: ["Codos hacia atrás, no hacia fuera.", "Cuerpo pegado al banco."],
+    alternatives: ["Fondos en paralelas", "Pressdown en polea"],
+  },
+  "skull-crusher": {
+    id: "skull-crusher",
+    name: "Press francés con barra EZ",
+    short: "Press francés",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial (cabeza larga)"],
+    secondary: [],
+    howTo: "Extensión de tríceps tumbado con barra EZ, buen estiramiento de la cabeza larga.",
+    setup: ["Tumbado en banco, barra sobre el pecho con brazos extendidos.", "Codos apuntando al techo, fijos.", "Agarre a la anchura de los hombros."],
+    execution: ["Baja la barra hacia la frente flexionando el codo.", "Mantén los codos fijos y apuntando arriba.", "Extiende de vuelta sin bloquear de golpe."],
+    mistakes: ["Mover los codos hacia fuera o atrás.", "Bajar demasiado rápido cerca de la cabeza."],
+    cues: ["Codos fijos y verticales.", "Solo se mueve el antebrazo."],
+    alternatives: ["Extensión sobre la cabeza", "Pressdown en polea"],
+  },
+  "close-grip-bench-press": {
+    id: "close-grip-bench-press",
+    name: "Press banca agarre cerrado",
+    short: "Press cerrado",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial"],
+    secondary: ["Pectoral", "Deltoides anterior"],
+    howTo: "Press de banca con agarre estrecho, mueve el énfasis del pecho al tríceps.",
+    setup: ["Agarre a la anchura de los hombros o algo menos.", "Escápulas retraídas.", "Codos cerca del cuerpo."],
+    execution: ["Baja la barra al pecho con los codos pegados.", "Empuja en línea recta hacia arriba.", "No bloquees bruscamente."],
+    mistakes: ["Agarre demasiado estrecho (fuerza la muñeca).", "Abrir los codos como en un press normal."],
+    cues: ["Codos rozando el cuerpo.", "Empuja con el tríceps."],
+    alternatives: ["Press francés", "Pressdown en polea"],
+  },
+  "triceps-kickback": {
+    id: "triceps-kickback",
+    name: "Patada de tríceps con mancuerna",
+    short: "Patada de tríceps",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial"],
+    secondary: [],
+    howTo: "Extensión unilateral con el brazo pegado al cuerpo y el tronco inclinado, buena contracción final.",
+    setup: ["Tronco inclinado, apoyo en banco con una mano.", "Brazo con el codo a 90° pegado al costado.", "Espalda neutra."],
+    execution: ["Extiende el codo hacia atrás.", "Aprieta un instante con el brazo recto.", "Vuelve controlado a los 90°."],
+    mistakes: ["Mover el hombro en vez del codo.", "Usar demasiado peso perdiendo el recorrido."],
+    cues: ["Codo fijo y alto.", "Aprieta atrás."],
+    alternatives: ["Pressdown en polea", "Extensión unilateral"],
+  },
+  "diamond-pushup": {
+    id: "diamond-pushup",
+    name: "Flexiones diamante",
+    short: "Flexiones diamante",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial"],
+    secondary: ["Pectoral (porción esternal)"],
+    howTo: "Flexión con las manos juntas formando un diamante, gran énfasis en el tríceps.",
+    setup: ["Manos juntas bajo el pecho formando un rombo.", "Cuerpo en línea recta.", "Core activo."],
+    execution: ["Baja controlado con los codos pegados al cuerpo.", "Roza el pecho con las manos.", "Empuja hasta extender los brazos."],
+    mistakes: ["Abrir los codos hacia fuera.", "Arquear la cadera."],
+    cues: ["Codos pegados al cuerpo.", "Cuerpo en línea recta."],
+    alternatives: ["Fondos en banco", "Press cerrado"],
+  },
+  "machine-triceps-dip": {
+    id: "machine-triceps-dip",
+    name: "Fondos en máquina asistida",
+    short: "Fondos asistidos",
+    muscleGroup: "Tríceps",
+    primary: ["Tríceps braquial"],
+    secondary: ["Pectoral", "Deltoides anterior"],
+    howTo: "Versión guiada de los fondos, permite dosificar el peso asistido con precisión.",
+    setup: ["Ajusta el contrapeso según tu nivel.", "Agarre firme en las asas.", "Tronco vertical o algo inclinado."],
+    execution: ["Baja controlado flexionando los codos.", "Baja hasta sentir el estiramiento.", "Empuja hasta extender los brazos."],
+    mistakes: ["Usar demasiada asistencia y no progresar.", "Bajar demasiado rápido."],
+    cues: ["Codos cerca del cuerpo.", "Control en la bajada."],
+    alternatives: ["Fondos en paralelas", "Pressdown en polea"],
+  },
+
+  /* --- CUÁDRICEPS --- */
+  "barbell-back-squat": {
+    id: "barbell-back-squat",
+    name: "Sentadilla libre con barra",
+    short: "Sentadilla libre",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo", "Isquiotibiales", "Core"],
+    howTo: "El básico de pierna por excelencia, movimiento global de cadera y rodilla con barra en la espalda.",
+    setup: ["Barra apoyada en la parte alta de la espalda.", "Pies a la anchura de los hombros.", "Core activo, pecho alto."],
+    execution: ["Baja flexionando cadera y rodilla a la vez.", "Baja hasta que el muslo pase de paralelo si la movilidad lo permite.", "Sube empujando el suelo con todo el pie."],
+    mistakes: ["Que las rodillas colapsen hacia dentro.", "Redondear la zona lumbar abajo."],
+    cues: ["Pecho alto.", "Rodillas en la dirección de los pies."],
+    alternatives: ["Sentadilla goblet", "Prensa de piernas"],
+  },
+  "leg-press": {
+    id: "leg-press",
+    name: "Prensa de piernas",
+    short: "Prensa",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo", "Isquiotibiales"],
+    howTo: "Empuje de piernas guiado, permite cargar mucho peso con la zona lumbar protegida.",
+    setup: ["Pies a la anchura de los hombros en la plataforma.", "Espalda y zona lumbar pegadas al respaldo.", "Ajusta el recorrido según tu movilidad."],
+    execution: ["Baja controlado flexionando las rodillas.", "Baja hasta 90° o donde la zona lumbar se mantenga pegada.", "Empuja sin bloquear las rodillas de golpe."],
+    mistakes: ["Despegar la zona lumbar del respaldo abajo.", "Bloquear las rodillas con fuerza arriba."],
+    cues: ["Lumbar pegada siempre.", "Empuja con todo el pie."],
+    alternatives: ["Sentadilla libre", "Sentadilla goblet"],
+  },
+  "dumbbell-lunge": {
+    id: "dumbbell-lunge",
+    name: "Zancadas con mancuernas",
+    short: "Zancadas",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo", "Isquiotibiales"],
+    howTo: "Patrón unilateral de zancada, muy útil para corregir descompensaciones entre piernas.",
+    setup: ["Mancuernas a los lados, tronco erguido.", "Pies a la anchura de las caderas.", "Core activo."],
+    execution: ["Da un paso adelante y baja flexionando ambas rodillas.", "La rodilla trasera casi roza el suelo.", "Empuja con la pierna delantera para volver."],
+    mistakes: ["Que la rodilla delantera sobrepase mucho la punta del pie.", "Dar un paso demasiado corto."],
+    cues: ["Tronco erguido.", "Baja recto, no hacia delante."],
+    alternatives: ["Sentadilla búlgara", "Step-up"],
+  },
+  "bulgarian-split-squat": {
+    id: "bulgarian-split-squat",
+    name: "Sentadilla búlgara",
+    short: "Búlgara",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo"],
+    howTo: "Sentadilla unilateral con el pie trasero elevado, exige equilibrio y aísla muy bien cada pierna.",
+    setup: ["Pie trasero apoyado en un banco.", "Pie delantero adelantado lo suficiente.", "Tronco erguido, core activo."],
+    execution: ["Baja flexionando la rodilla delantera.", "Baja hasta sentir tensión en el cuádriceps.", "Empuja con la pierna delantera para subir."],
+    mistakes: ["Colocar el pie delantero demasiado cerca del banco.", "Perder el equilibrio por ir demasiado rápido."],
+    cues: ["Peso en el talón delantero.", "Baja en línea recta."],
+    alternatives: ["Zancadas con mancuernas", "Step-up"],
+  },
+  "goblet-squat": {
+    id: "goblet-squat",
+    name: "Sentadilla goblet",
+    short: "Goblet squat",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo", "Core"],
+    howTo: "Sentadilla con una mancuerna o kettlebell sujeta al pecho, buena para aprender el patrón antes de cargar más peso.",
+    setup: ["Mancuerna sujeta verticalmente contra el pecho.", "Pies algo más anchos que los hombros.", "Core activo, pecho alto."],
+    execution: ["Baja flexionando cadera y rodilla.", "Los codos pueden rozar la cara interna de las rodillas abajo.", "Sube empujando el suelo."],
+    mistakes: ["Redondear la espalda alta.", "Levantar los talones del suelo."],
+    cues: ["Pecho alto.", "Rodillas hacia los pies."],
+    alternatives: ["Sentadilla libre", "Prensa de piernas"],
+  },
+  "step-up": {
+    id: "step-up",
+    name: "Step-up con mancuernas",
+    short: "Step-up",
+    muscleGroup: "Cuádriceps",
+    primary: ["Cuádriceps"],
+    secondary: ["Glúteo"],
+    howTo: "Subida a un cajón o banco, patrón unilateral muy funcional para el cuádriceps y el glúteo.",
+    setup: ["Cajón o banco a una altura donde la rodilla quede a 90° al subir.", "Mancuernas a los lados.", "Pie completo apoyado en el cajón."],
+    execution: ["Empuja con la pierna de arriba para subir el cuerpo.", "Sube hasta extender la pierna del cajón.", "Baja controlado sin dejarte caer."],
+    mistakes: ["Impulsarte con la pierna de abajo.", "Cajón demasiado alto para tu movilidad."],
+    cues: ["Empuja con el talón de arriba.", "Sube controlado, sin saltar."],
+    alternatives: ["Sentadilla búlgara", "Zancadas"],
+  },
+
+  /* --- ISQUIOTIBIALES --- */
+  "dumbbell-romanian-deadlift": {
+    id: "dumbbell-romanian-deadlift",
+    name: "Peso muerto rumano con mancuernas",
+    short: "RDL mancuernas",
+    muscleGroup: "Isquiotibiales",
+    primary: ["Isquiotibiales", "Glúteo"],
+    secondary: ["Erectores espinales"],
+    howTo: "Bisagra de cadera con mancuernas, buen estiramiento de isquios manteniendo la espalda neutra.",
+    setup: ["Mancuernas por delante de los muslos.", "Rodillas con flexión mínima y fija.", "Espalda neutra, pecho alto."],
+    execution: ["Empuja la cadera hacia atrás bajando el peso.", "Baja hasta sentir el estiramiento en los isquios.", "Sube empujando la cadera hacia delante."],
+    mistakes: ["Redondear la espalda.", "Flexionar demasiado la rodilla (lo convierte en sentadilla)."],
+    cues: ["Cadera atrás.", "Peso pegado a las piernas."],
+    alternatives: ["Peso muerto piernas rígidas", "Buenos días"],
+  },
+  "seated-leg-curl": {
+    id: "seated-leg-curl",
+    name: "Curl femoral sentado en máquina",
+    short: "Curl femoral sentado",
+    muscleGroup: "Isquiotibiales",
+    primary: ["Isquiotibiales"],
+    secondary: [],
+    howTo: "Aislamiento de isquios sentado, buena alternativa al curl tumbado con distinto ángulo de trabajo.",
+    setup: ["Espalda pegada al respaldo.", "Rodillos justo encima del tobillo.", "Piernas casi extendidas al empezar."],
+    execution: ["Flexiona las rodillas llevando el rodillo hacia abajo.", "Aprieta un instante al final.", "Vuelve controlado sin soltar de golpe."],
+    mistakes: ["Recorrido corto.", "Levantar la cadera del asiento."],
+    cues: ["Aprieta al final.", "Control en la vuelta."],
+    alternatives: ["Curl femoral tumbado", "Peso muerto rumano"],
+  },
+  "good-morning": {
+    id: "good-morning",
+    name: "Buenos días con barra",
+    short: "Buenos días",
+    muscleGroup: "Isquiotibiales",
+    primary: ["Isquiotibiales", "Erectores espinales"],
+    secondary: ["Glúteo"],
+    howTo: "Bisagra de cadera con la barra en la espalda, exige buena técnica y control del peso.",
+    setup: ["Barra apoyada en la parte alta de la espalda.", "Rodillas con flexión mínima y fija.", "Espalda neutra."],
+    execution: ["Empuja la cadera hacia atrás inclinando el tronco.", "Baja hasta sentir el estiramiento en los isquios.", "Sube empujando la cadera hacia delante."],
+    mistakes: ["Redondear la espalda.", "Usar demasiado peso para el nivel de técnica."],
+    cues: ["Cadera atrás primero.", "Espalda neutra siempre."],
+    alternatives: ["Peso muerto rumano", "Peso muerto piernas rígidas"],
+  },
+  "stiff-leg-deadlift": {
+    id: "stiff-leg-deadlift",
+    name: "Peso muerto piernas rígidas",
+    short: "Peso muerto rígido",
+    muscleGroup: "Isquiotibiales",
+    primary: ["Isquiotibiales"],
+    secondary: ["Glúteo", "Erectores espinales"],
+    howTo: "Variante de peso muerto con las rodillas casi bloqueadas, más énfasis en el estiramiento del isquio.",
+    setup: ["Barra por delante de los muslos.", "Rodillas casi extendidas, sin bloquear.", "Espalda neutra."],
+    execution: ["Baja la barra pegada a las piernas empujando la cadera atrás.", "Baja hasta el estiramiento máximo cómodo.", "Sube empujando la cadera hacia delante."],
+    mistakes: ["Redondear la espalda para llegar más abajo.", "Bloquear las rodillas por completo."],
+    cues: ["Barra pegada a la pierna.", "Cadera atrás, no rodillas adelante."],
+    alternatives: ["Peso muerto rumano", "Buenos días"],
+  },
+  "nordic-curl": {
+    id: "nordic-curl",
+    name: "Curl nórdico",
+    short: "Curl nórdico",
+    muscleGroup: "Isquiotibiales",
+    primary: ["Isquiotibiales"],
+    secondary: [],
+    howTo: "Trabajo excéntrico de isquios con el propio peso corporal, muy exigente y útil para prevención de lesiones.",
+    setup: ["Rodillas apoyadas, tobillos fijados por un compañero o un soporte.", "Cuerpo recto desde las rodillas.", "Core activo."],
+    execution: ["Baja el tronco lo más lento posible controlando con los isquios.", "Frena la caída todo lo que puedas.", "Ayúdate con las manos al final si hace falta."],
+    mistakes: ["Doblar la cadera en vez de bajar recto.", "Caer sin control."],
+    cues: ["Baja lo más lento posible.", "Cuerpo en línea recta."],
+    alternatives: ["Curl femoral tumbado", "Peso muerto rumano"],
+  },
+
+  /* --- GLÚTEO --- */
+  "hip-thrust": {
+    id: "hip-thrust",
+    name: "Hip thrust con barra",
+    short: "Hip thrust",
+    muscleGroup: "Glúteo",
+    primary: ["Glúteo mayor"],
+    secondary: ["Isquiotibiales"],
+    howTo: "El ejercicio más directo para el glúteo, empuje de cadera con la espalda apoyada en un banco.",
+    setup: ["Espalda alta apoyada en el banco.", "Barra sobre la cadera, con protección.", "Pies firmes a la anchura de las caderas."],
+    execution: ["Empuja la cadera hacia arriba apretando el glúteo.", "Extiende la cadera por completo arriba.", "Baja controlado sin tocar del todo el suelo."],
+    mistakes: ["Hiperextender la zona lumbar arriba en vez de usar el glúteo.", "Pies demasiado lejos o cerca del cuerpo."],
+    cues: ["Aprieta el glúteo arriba.", "Barbilla metida, sin arquear el cuello."],
+    alternatives: ["Puente de glúteo", "Sentadilla sumo"],
+  },
+  "cable-glute-kickback": {
+    id: "cable-glute-kickback",
+    name: "Patada de glúteo en polea",
+    short: "Patada de glúteo",
+    muscleGroup: "Glúteo",
+    primary: ["Glúteo mayor"],
+    secondary: ["Isquiotibiales"],
+    howTo: "Extensión de cadera unilateral en polea baja, buena contracción aislada del glúteo.",
+    setup: ["Tobillera enganchada a la polea baja.", "Tronco ligeramente inclinado, apoyo en el marco.", "Core activo."],
+    execution: ["Extiende la cadera llevando la pierna hacia atrás.", "Aprieta el glúteo al final.", "Vuelve controlado sin perder la tensión."],
+    mistakes: ["Balancear el tronco para impulsar la pierna.", "Arquear la zona lumbar."],
+    cues: ["Aprieta el glúteo, no balancees.", "Rodilla con flexión suave y fija."],
+    alternatives: ["Hip thrust", "Puente de glúteo"],
+  },
+  "glute-bridge": {
+    id: "glute-bridge",
+    name: "Puente de glúteo",
+    short: "Puente de glúteo",
+    muscleGroup: "Glúteo",
+    primary: ["Glúteo mayor"],
+    secondary: ["Isquiotibiales"],
+    howTo: "Versión en el suelo del hip thrust, buena para activación o como ejercicio con peso moderado.",
+    setup: ["Tumbado boca arriba, rodillas flexionadas.", "Pies firmes cerca de los glúteos.", "Disco o mancuerna sobre la cadera si añades peso."],
+    execution: ["Empuja la cadera hacia arriba apretando el glúteo.", "Extiende la cadera por completo arriba.", "Baja controlado sin soltar de golpe."],
+    mistakes: ["Arquear la zona lumbar en vez de usar el glúteo.", "Recorrido corto."],
+    cues: ["Aprieta arriba con fuerza.", "Empuja con los talones."],
+    alternatives: ["Hip thrust", "Sentadilla sumo"],
+  },
+  "band-hip-abduction-standing": {
+    id: "band-hip-abduction-standing",
+    name: "Abducción de cadera de pie con banda",
+    short: "Abducción con banda",
+    muscleGroup: "Glúteo",
+    primary: ["Glúteo medio"],
+    secondary: [],
+    howTo: "Trabajo del glúteo medio de pie con banda elástica, útil para estabilidad de cadera.",
+    setup: ["Banda elástica por encima de los tobillos.", "De pie, apoyo firme en una pierna.", "Tronco erguido, core activo."],
+    execution: ["Lleva la pierna hacia el lateral contra la banda.", "Aprieta el glúteo al final.", "Vuelve controlado sin perder la tensión de la banda."],
+    mistakes: ["Inclinar el tronco para ganar recorrido.", "Usar impulso en vez de control."],
+    cues: ["Tronco quieto.", "Aprieta el lateral del glúteo."],
+    alternatives: ["Abducción de cadera en máquina", "Patada de glúteo en polea"],
+  },
+  "sumo-squat": {
+    id: "sumo-squat",
+    name: "Sentadilla sumo",
+    short: "Sentadilla sumo",
+    muscleGroup: "Glúteo",
+    primary: ["Glúteo mayor", "Aductores"],
+    secondary: ["Cuádriceps"],
+    howTo: "Sentadilla con stance ancho y puntas hacia fuera, mayor implicación de glúteo y aductores.",
+    setup: ["Pies bien abiertos, puntas rotadas hacia fuera.", "Mancuerna o kettlebell colgando con ambas manos.", "Pecho alto, core activo."],
+    execution: ["Baja flexionando cadera y rodillas siguiendo la línea de los pies.", "Baja hasta donde la movilidad lo permita.", "Sube empujando el suelo y apretando el glúteo."],
+    mistakes: ["Rodillas hacia dentro.", "Tronco inclinado hacia delante en exceso."],
+    cues: ["Rodillas en la línea de los pies.", "Aprieta el glúteo arriba."],
+    alternatives: ["Sentadilla goblet", "Hip thrust"],
+  },
+
+  /* --- GEMELO --- */
+  "standing-calf-raise-machine": {
+    id: "standing-calf-raise-machine",
+    name: "Gemelo de pie en máquina",
+    short: "Gemelo de pie",
+    muscleGroup: "Gemelo",
+    primary: ["Gastrocnemio"],
+    secondary: ["Sóleo"],
+    howTo: "Elevación de talones de pie con carga sobre los hombros, prioriza el gastrocnemio.",
+    setup: ["Hombros bajo las almohadillas.", "Punta de los pies en el borde de la plataforma.", "Rodillas casi extendidas."],
+    execution: ["Sube a la punta de los pies lo más alto posible.", "Pausa un instante arriba.", "Baja controlado hasta el estiramiento completo."],
+    mistakes: ["Recorrido corto por usar demasiado peso.", "Rebotar abajo."],
+    cues: ["Sube todo lo que puedas.", "Pausa abajo en el estiramiento."],
+    alternatives: ["Gemelo sentado", "Gemelo en prensa"],
+  },
+  "seated-calf-raise": {
+    id: "seated-calf-raise",
+    name: "Gemelo sentado",
+    short: "Gemelo sentado",
+    muscleGroup: "Gemelo",
+    primary: ["Sóleo"],
+    secondary: ["Gastrocnemio"],
+    howTo: "Con la rodilla flexionada, el énfasis pasa del gastrocnemio al sóleo.",
+    setup: ["Sentado, rodillas bajo las almohadillas.", "Punta de los pies en el borde de la plataforma.", "Espalda apoyada."],
+    execution: ["Sube los talones lo más alto posible.", "Pausa un instante arriba.", "Baja controlado hasta el estiramiento completo."],
+    mistakes: ["Recorrido corto.", "Rebotar en vez de controlar."],
+    cues: ["Sube despacio, pausa arriba.", "Estira bien abajo."],
+    alternatives: ["Gemelo de pie", "Gemelo en prensa"],
+  },
+  "leg-press-calf-raise": {
+    id: "leg-press-calf-raise",
+    name: "Gemelo en prensa",
+    short: "Gemelo en prensa",
+    muscleGroup: "Gemelo",
+    primary: ["Gastrocnemio"],
+    secondary: ["Sóleo"],
+    howTo: "Elevación de talones usando la plataforma de la prensa de piernas, cómodo para series largas.",
+    setup: ["Solo la punta de los pies en la plataforma.", "Piernas casi extendidas.", "Zona lumbar pegada al respaldo."],
+    execution: ["Empuja con la punta de los pies extendiendo el tobillo.", "Pausa arriba un instante.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Flexionar y extender la rodilla en vez del tobillo.", "Recorrido corto."],
+    cues: ["Solo se mueve el tobillo.", "Estira bien abajo."],
+    alternatives: ["Gemelo de pie", "Gemelo sentado"],
+  },
+  "single-leg-dumbbell-calf-raise": {
+    id: "single-leg-dumbbell-calf-raise",
+    name: "Gemelo a una pierna con mancuerna",
+    short: "Gemelo unilateral",
+    muscleGroup: "Gemelo",
+    primary: ["Gastrocnemio"],
+    secondary: ["Sóleo"],
+    howTo: "Versión unilateral con mancuerna, útil para igualar fuerza entre piernas.",
+    setup: ["Mancuerna en la mano del mismo lado.", "Punta del pie en un step o disco.", "Apoyo libre en algo estable."],
+    execution: ["Sube el talón lo más alto posible.", "Pausa arriba un instante.", "Baja controlado hasta el estiramiento completo."],
+    mistakes: ["Usar el apoyo para impulsarte.", "Recorrido corto."],
+    cues: ["Sube recto, sin balanceo.", "Estira bien abajo."],
+    alternatives: ["Gemelo de pie en máquina", "Gemelo en prensa"],
+  },
+
+  /* --- ANTEBRAZO --- */
+  "wrist-curl": {
+    id: "wrist-curl",
+    name: "Curl de muñeca con barra",
+    short: "Curl de muñeca",
+    muscleGroup: "Antebrazo",
+    primary: ["Flexores del antebrazo"],
+    secondary: [],
+    howTo: "Aislamiento de los flexores de la muñeca, mejora el agarre y el grosor del antebrazo.",
+    setup: ["Sentado, antebrazos apoyados en los muslos o un banco.", "Barra con agarre supino.", "Muñecas justo fuera del apoyo."],
+    execution: ["Flexiona las muñecas subiendo la barra.", "Aprieta arriba un instante.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Mover el antebrazo entero en vez de solo la muñeca.", "Usar demasiado peso."],
+    cues: ["Solo se mueve la muñeca.", "Recorrido completo."],
+    alternatives: ["Curl de muñeca invertido", "Farmer's walk"],
+  },
+  "reverse-wrist-curl": {
+    id: "reverse-wrist-curl",
+    name: "Curl de muñeca invertido",
+    short: "Curl invertido",
+    muscleGroup: "Antebrazo",
+    primary: ["Extensores del antebrazo"],
+    secondary: [],
+    howTo: "Trabaja los extensores de la muñeca, importantes para el equilibrio y la salud del antebrazo.",
+    setup: ["Sentado, antebrazos apoyados.", "Barra con agarre prono.", "Muñecas justo fuera del apoyo."],
+    execution: ["Extiende las muñecas subiendo la barra.", "Aprieta arriba un instante.", "Baja controlado hasta el estiramiento."],
+    mistakes: ["Usar demasiado peso (los extensores son más débiles).", "Mover el codo."],
+    cues: ["Peso ligero, recorrido completo.", "Solo se mueve la muñeca."],
+    alternatives: ["Curl de muñeca", "Farmer's walk"],
+  },
+  "farmers-walk": {
+    id: "farmers-walk",
+    name: "Farmer's walk",
+    short: "Farmer's walk",
+    muscleGroup: "Antebrazo",
+    primary: ["Flexores del antebrazo (agarre)"],
+    secondary: ["Trapecio", "Core"],
+    howTo: "Caminar cargando peso a los lados, trabajo de agarre y core muy funcional.",
+    setup: ["Mancuernas o kettlebells pesadas a los lados.", "Pecho alto, hombros abajo.", "Core activo."],
+    execution: ["Camina a paso firme manteniendo la postura.", "Evita balancear el peso.", "Suelta con control al terminar la distancia."],
+    mistakes: ["Encorvar la espalda por el peso.", "Pasos demasiado largos e inestables."],
+    cues: ["Pecho alto todo el recorrido.", "Agarre firme."],
+    alternatives: ["Curl de muñeca", "Dead hang en barra"],
+  },
+  "reverse-curl-barbell": {
+    id: "reverse-curl-barbell",
+    name: "Curl inverso con barra",
+    short: "Curl inverso",
+    muscleGroup: "Antebrazo",
+    primary: ["Braquiorradial", "Extensores del antebrazo"],
+    secondary: ["Bíceps braquial"],
+    howTo: "Curl con agarre prono, prioriza el braquiorradial y los extensores sobre el bíceps.",
+    setup: ["De pie, barra con agarre prono a la anchura de los hombros.", "Codos pegados al costado.", "Core activo."],
+    execution: ["Flexiona el codo manteniendo el agarre prono.", "Sube sin rotar la muñeca.", "Baja controlado."],
+    mistakes: ["Usar demasiado peso y perder la muñeca recta.", "Balancear el cuerpo."],
+    cues: ["Muñeca recta y firme.", "Codos fijos."],
+    alternatives: ["Curl martillo", "Curl de muñeca"],
+  },
+
+  /* --- CORE --- */
+  "plank": {
+    id: "plank",
+    name: "Plancha abdominal",
+    short: "Plancha",
+    muscleGroup: "Core",
+    primary: ["Recto abdominal", "Transverso"],
+    secondary: ["Glúteo", "Hombro"],
+    howTo: "Isométrico básico de core, entrena la capacidad de mantener el tronco estable.",
+    setup: ["Antebrazos y puntas de los pies en el suelo.", "Cuerpo en línea recta de cabeza a talones.", "Core y glúteo activos."],
+    execution: ["Mantén la posición sin dejar caer la cadera.", "Respira de forma controlada.", "Aguanta el tiempo objetivo."],
+    mistakes: ["Dejar caer o elevar demasiado la cadera.", "Aguantar la respiración."],
+    cues: ["Cuerpo en línea recta.", "Aprieta el core, no aguantes el aire."],
+    alternatives: ["Plancha lateral", "Dead bug"],
+  },
+  "cable-crunch": {
+    id: "cable-crunch",
+    name: "Crunch en polea alta",
+    short: "Crunch polea",
+    muscleGroup: "Core",
+    primary: ["Recto abdominal"],
+    secondary: [],
+    howTo: "Crunch de rodillas con carga añadida por la polea, permite progresar el abdomen con peso.",
+    setup: ["De rodillas frente a la polea alta con cuerda.", "Cuerda sujeta a ambos lados de la cabeza.", "Cadera fija durante el movimiento."],
+    execution: ["Flexiona el tronco llevando los codos hacia las rodillas.", "Aprieta el abdomen al final.", "Vuelve controlado sin perder tensión."],
+    mistakes: ["Mover la cadera hacia atrás (tirar con los brazos y no con el abdomen).", "Usar impulso."],
+    cues: ["Curva la columna, no tires con los brazos.", "Aprieta al final."],
+    alternatives: ["Rueda abdominal", "Elevación de piernas colgado"],
+  },
+  "hanging-leg-raise": {
+    id: "hanging-leg-raise",
+    name: "Elevación de piernas colgado",
+    short: "Elevación colgado",
+    muscleGroup: "Core",
+    primary: ["Recto abdominal", "Flexores de cadera"],
+    secondary: ["Antebrazo (agarre)"],
+    howTo: "Colgado de una barra, eleva las piernas o rodillas para trabajar el abdomen inferior.",
+    setup: ["Colgado de la barra con agarre firme.", "Cuerpo estable, sin balanceo inicial.", "Core activo antes de empezar."],
+    execution: ["Eleva las piernas o rodillas flexionando la cadera.", "Sube todo lo que la técnica permita sin balanceo.", "Baja controlado hasta la extensión."],
+    mistakes: ["Usar balanceo para subir las piernas.", "Bajar de golpe sin control."],
+    cues: ["Sube con el abdomen, no con impulso.", "Baja despacio."],
+    alternatives: ["Crunch en polea", "Rueda abdominal"],
+  },
+  "ab-wheel-rollout": {
+    id: "ab-wheel-rollout",
+    name: "Rueda abdominal",
+    short: "Rueda abdominal",
+    muscleGroup: "Core",
+    primary: ["Recto abdominal", "Transverso"],
+    secondary: ["Dorsal ancho", "Hombro"],
+    howTo: "Uno de los ejercicios más exigentes para el core, requiere buen control de la zona lumbar.",
+    setup: ["De rodillas, rueda sujeta con ambas manos.", "Core activo antes de empezar a rodar.", "Espalda neutra."],
+    execution: ["Rueda hacia delante manteniendo el core apretado.", "Llega hasta donde controles sin arquear la lumbar.", "Vuelve tirando con el abdomen, no con los brazos."],
+    mistakes: ["Arquear la zona lumbar al extender.", "Ir más lejos de lo que el core puede controlar."],
+    cues: ["No dejes caer la cadera.", "Vuelve con el abdomen."],
+    alternatives: ["Plancha abdominal", "Crunch en polea"],
+  },
+  "russian-twist": {
+    id: "russian-twist",
+    name: "Giro ruso con peso",
+    short: "Giro ruso",
+    muscleGroup: "Core",
+    primary: ["Oblicuos"],
+    secondary: ["Recto abdominal"],
+    howTo: "Rotación de tronco sentado con un peso, trabaja los oblicuos con control.",
+    setup: ["Sentado, tronco inclinado atrás unos 45°.", "Pies elevados o apoyados según el nivel.", "Peso sujeto con ambas manos delante del pecho."],
+    execution: ["Gira el tronco llevando el peso a un lateral.", "Vuelve al centro con control.", "Repite hacia el otro lado."],
+    mistakes: ["Mover solo los brazos sin rotar el tronco.", "Ir demasiado rápido perdiendo el control."],
+    cues: ["Gira desde el tronco.", "Ritmo controlado, no lances el peso."],
+    alternatives: ["Plancha lateral", "Crunch en polea"],
+  },
+  "side-plank": {
+    id: "side-plank",
+    name: "Plancha lateral",
+    short: "Plancha lateral",
+    muscleGroup: "Core",
+    primary: ["Oblicuos"],
+    secondary: ["Transverso", "Glúteo medio"],
+    howTo: "Isométrico lateral, clave para la estabilidad del tronco en el plano frontal.",
+    setup: ["Apoyo en antebrazo y borde del pie, de costado.", "Cuerpo en línea recta.", "Cadera elevada del suelo."],
+    execution: ["Mantén la cadera elevada y alineada.", "Respira de forma controlada.", "Aguanta el tiempo objetivo sin que la cadera caiga."],
+    mistakes: ["Dejar caer la cadera.", "Rotar el tronco hacia delante o atrás."],
+    cues: ["Cadera arriba y alineada.", "Cuerpo en línea recta."],
+    alternatives: ["Plancha abdominal", "Giro ruso"],
+  },
+  "dead-bug": {
+    id: "dead-bug",
+    name: "Dead bug",
+    short: "Dead bug",
+    muscleGroup: "Core",
+    primary: ["Transverso", "Recto abdominal"],
+    secondary: [],
+    howTo: "Ejercicio de control de core tumbado, enseña a estabilizar la zona lumbar mientras se mueven brazos y piernas.",
+    setup: ["Tumbado boca arriba, brazos hacia el techo.", "Caderas y rodillas a 90°.", "Zona lumbar pegada al suelo."],
+    execution: ["Baja un brazo y la pierna contraria a la vez.", "Mantén la zona lumbar pegada al suelo todo el rato.", "Vuelve al centro y repite con el lado contrario."],
+    mistakes: ["Despegar la zona lumbar del suelo.", "Ir demasiado rápido perdiendo el control."],
+    cues: ["Lumbar pegada al suelo siempre.", "Movimiento lento y controlado."],
+    alternatives: ["Plancha abdominal", "Rueda abdominal"],
+  },
+
 };
 
 /* ============================================================================
@@ -876,14 +1873,63 @@ const WARMUP = {
     "1 serie de 6-8 reps con el 70%",
     "Movilidad de cadera y tobillo",
   ],
+  Cuádriceps: [
+    "5 min de bici o caminata en pendiente",
+    "1 serie de 12-15 reps con el 40-50%",
+    "Movilidad de cadera y tobillo",
+  ],
+  Isquiotibiales: ["1 serie de 12-15 reps con el 50%", "Movilidad de cadera, balanceos de pierna"],
+  Glúteo: ["1 serie de 12-15 reps con el 50%", "Activación con puente de glúteo sin peso"],
+  Gemelo: ["1 serie de 15-20 reps con poco peso", "Movilidad de tobillo"],
+  Antebrazo: ["1 serie de 15-20 reps con poco peso", "Movilidad de muñeca"],
+  Core: ["Movilidad de columna y cadera", "1 serie corta sin peso para sentir la técnica"],
 };
 
-/* Catálogo agrupado por grupo muscular, en el mismo orden que WARMUP.
-   Lo usa el selector de sustitución de ejercicios. */
-const EXERCISES_BY_GROUP = Object.keys(WARMUP).map((group) => ({
-  group,
-  items: Object.values(EXERCISES).filter((e) => e.muscleGroup === group),
-}));
+/* Grupos musculares válidos, en el orden en que se muestran en el selector. */
+const MUSCLE_GROUPS = Object.keys(WARMUP);
+
+/* --- CATÁLOGO + EJERCICIOS PROPIOS -------------------------------------------
+   EXERCISES es fijo (90 ejercicios). Los que crea el usuario viven aparte
+   (hipertrofia:exercises:v1) y se fusionan en tiempo de lectura. getExercise()
+   es la ÚNICA forma correcta de leer un ejercicio por id en toda la app: nunca
+   devuelve undefined, así que ningún componente necesita comprobar null. Un id
+   que no existe en ningún catálogo (p. ej. un ejercicio propio ya borrado pero
+   con historial) cae en un marcador "Ejercicio eliminado" en vez de petar. */
+const EXERCISE_DEFAULTS = {
+  short: "",
+  primary: [],
+  secondary: [],
+  howTo: "",
+  setup: [],
+  execution: [],
+  mistakes: [],
+  cues: [],
+  alternatives: [],
+};
+function normalizeExercise(ex) {
+  return { ...EXERCISE_DEFAULTS, ...ex };
+}
+function unknownExercise(id) {
+  return { ...EXERCISE_DEFAULTS, id, name: "Ejercicio eliminado", short: "Eliminado", muscleGroup: "—" };
+}
+function mergeExercises(customExercises) {
+  return { ...EXERCISES, ...(customExercises || {}) };
+}
+function getExercise(id, customExercises) {
+  const custom = customExercises || {};
+  return custom[id] || EXERCISES[id] || unknownExercise(id);
+}
+/* Catálogo agrupado por grupo muscular, con los de la rutina (inRoutine)
+   siempre primero bajo su propio grupo. Lo usa el selector de sustitución. */
+function buildExerciseGroups(customExercises) {
+  const all = Object.values(mergeExercises(customExercises));
+  const inRoutine = all.filter((e) => e.inRoutine);
+  const rest = MUSCLE_GROUPS.map((group) => ({
+    group,
+    items: all.filter((e) => !e.inRoutine && e.muscleGroup === group),
+  }));
+  return [{ group: "En tu rutina", items: inRoutine }, ...rest];
+}
 
 /* ============================================================================
    4. ALMACENAMIENTO
@@ -893,6 +1939,7 @@ const K_CFG = "hipertrofia:config:v1";
 const K_SESSION = "hipertrofia:session:v1";
 const K_MEDIA = "hipertrofia:media:v1";
 const K_SWAPS = "hipertrofia:swaps:v1";
+const K_EXERCISES = "hipertrofia:exercises:v1";
 
 async function loadKey(key, fallback) {
   try {
@@ -1036,13 +2083,14 @@ const getDay = (id) => DAYS.find((d) => d.id === id) || null;
    `ex` de cada slot al leerlo. Todo lo demás del slot (series, reps, RIR,
    descanso) sigue viniendo de DAYS tal cual. */
 const swapKey = (dayId, index) => `${dayId}:${index}`;
-function getEffectiveDay(dayId, swaps) {
+function getEffectiveDay(dayId, swaps, customExercises) {
   const day = getDay(dayId);
   if (!day || !swaps) return day;
+  const all = mergeExercises(customExercises);
   let changed = false;
   const slots = day.slots.map((slot, i) => {
     const exId = swaps[swapKey(dayId, i)];
-    if (exId && exId !== slot.ex && EXERCISES[exId]) {
+    if (exId && exId !== slot.ex && all[exId]) {
       changed = true;
       return { ...slot, ex: exId };
     }
@@ -1388,8 +2436,8 @@ function ExerciseMedia({ exerciseId, videos, media, size = 62, radius = 12, cont
 /* ============================================================================
    9. FICHA TÉCNICA DEL EJERCICIO
    ========================================================================== */
-function ExerciseSheet({ slot, videos, media, onSetVideo, history, onClose, initialTab = "tecnica" }) {
-  const ex = EXERCISES[slot.ex];
+function ExerciseSheet({ slot, videos, media, onSetVideo, history, onClose, initialTab = "tecnica", customExercises }) {
+  const ex = getExercise(slot.ex, customExercises);
   const [tab, setTab] = useState(initialTab);
   const prog = getProgression(history, slot.repRange);
   useSwipeBack(onClose);
@@ -1445,7 +2493,9 @@ function ExerciseSheet({ slot, videos, media, onSetVideo, history, onClose, init
         <h2 style={{ fontSize: 24, fontWeight: 800, color: C.chalk, margin: "6px 0 4px", letterSpacing: "-0.02em", lineHeight: 1.15 }}>
           {ex.name}
         </h2>
-        <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 18px" }}>{ex.howTo}</p>
+        {ex.howTo && (
+          <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 18px" }}>{ex.howTo}</p>
+        )}
 
         <div style={{ marginBottom: 14 }}>
           <ExerciseMedia
@@ -1494,82 +2544,105 @@ function ExerciseSheet({ slot, videos, media, onSetVideo, history, onClose, init
 
         {tab === "tecnica" && (
           <>
-            <Section title="Músculos principales">
-              <List items={ex.primary} marker="●" />
-              {ex.secondary.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <Label style={{ marginBottom: 8 }}>Secundarios</Label>
-                  <List items={ex.secondary} marker="○" />
-                </div>
-              )}
-            </Section>
-            <Section title="Posición inicial">
-              <List items={ex.setup} />
-            </Section>
-            <Section title="Ejecución">
-              <ol style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
-                {ex.execution.map((t, i) => (
-                  <li key={i} className="flex gap-3" style={{ marginBottom: 10 }}>
+            {(ex.primary.length > 0 || ex.secondary.length > 0) && (
+              <Section title="Músculos principales">
+                <List items={ex.primary} marker="●" />
+                {ex.secondary.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <Label style={{ marginBottom: 8 }}>Secundarios</Label>
+                    <List items={ex.secondary} marker="○" />
+                  </div>
+                )}
+              </Section>
+            )}
+            {ex.setup.length > 0 && (
+              <Section title="Posición inicial">
+                <List items={ex.setup} />
+              </Section>
+            )}
+            {ex.execution.length > 0 && (
+              <Section title="Ejecución">
+                <ol style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
+                  {ex.execution.map((t, i) => (
+                    <li key={i} className="flex gap-3" style={{ marginBottom: 10 }}>
+                      <span
+                        style={{
+                          color: C.dim,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontVariantNumeric: "tabular-nums",
+                          paddingTop: 3,
+                        }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span style={{ color: C.chalk, fontSize: 14, lineHeight: 1.55, opacity: 0.9 }}>{t}</span>
+                    </li>
+                  ))}
+                </ol>
+              </Section>
+            )}
+            {ex.cues.length > 0 && (
+              <Section title="Cues">
+                <div className="flex flex-wrap gap-2">
+                  {ex.cues.map((c, i) => (
                     <span
+                      key={i}
                       style={{
-                        color: C.dim,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        fontVariantNumeric: "tabular-nums",
-                        paddingTop: 3,
+                        background: C.panel2,
+                        border: `1px solid ${C.line}`,
+                        borderRadius: 999,
+                        padding: "8px 14px",
+                        fontSize: 13,
+                        color: C.chalk,
+                        opacity: 0.9,
                       }}
                     >
-                      {String(i + 1).padStart(2, "0")}
+                      {c}
                     </span>
-                    <span style={{ color: C.chalk, fontSize: 14, lineHeight: 1.55, opacity: 0.9 }}>{t}</span>
-                  </li>
-                ))}
-              </ol>
-            </Section>
-            <Section title="Cues">
-              <div className="flex flex-wrap gap-2">
-                {ex.cues.map((c, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      background: C.panel2,
-                      border: `1px solid ${C.line}`,
-                      borderRadius: 999,
-                      padding: "8px 14px",
-                      fontSize: 13,
-                      color: C.chalk,
-                      opacity: 0.9,
-                    }}
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-            </Section>
-            <Section title="Si no puedes hacerlo">
-              <List items={ex.alternatives} marker="↳" />
-            </Section>
+                  ))}
+                </div>
+              </Section>
+            )}
+            {ex.alternatives.length > 0 && (
+              <Section title="Si no puedes hacerlo">
+                <List items={ex.alternatives} marker="↳" />
+              </Section>
+            )}
+            {!ex.primary.length &&
+              !ex.setup.length &&
+              !ex.execution.length &&
+              !ex.cues.length &&
+              !ex.alternatives.length && (
+                <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.6 }}>
+                  Ejercicio propio sin ficha técnica detallada.
+                </div>
+              )}
           </>
         )}
 
         {tab === "errores" && (
           <Section title="Errores frecuentes">
-            {ex.mistakes.map((m, i) => (
-              <div
-                key={i}
-                className="flex gap-3"
-                style={{
-                  background: C.panel,
-                  border: `1px solid ${C.line}`,
-                  borderRadius: 12,
-                  padding: "13px 15px",
-                  marginBottom: 9,
-                }}
-              >
-                <span style={{ color: C.signal, fontSize: 13, fontWeight: 700 }}>✕</span>
-                <span style={{ color: C.chalk, fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>{m}</span>
-              </div>
-            ))}
+            {ex.mistakes.length > 0 ? (
+              ex.mistakes.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex gap-3"
+                  style={{
+                    background: C.panel,
+                    border: `1px solid ${C.line}`,
+                    borderRadius: 12,
+                    padding: "13px 15px",
+                    marginBottom: 9,
+                  }}
+                >
+                  <span style={{ color: C.signal, fontSize: 13, fontWeight: 700 }}>✕</span>
+                  <span style={{ color: C.chalk, fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>{m}</span>
+                </div>
+              ))
+            ) : (
+              <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.6 }}>Sin errores frecuentes registrados.</div>
+            )}
           </Section>
         )}
 
@@ -1942,7 +3015,7 @@ function useSwipeBack(onBack) {
 /* ============================================================================
    14. PANTALLA DE ENTRENAMIENTO
    ========================================================================== */
-function WorkoutScreen({ day, session, setSession, log, saveSet, videos, media, onSetVideo, onExit, openSheet }) {
+function WorkoutScreen({ day, session, setSession, log, saveSet, videos, media, onSetVideo, onExit, openSheet, customExercises }) {
   const [idx, setIdx] = useState(session.currentIndex || 0);
   useEffect(() => {
     if (typeof session.jumpTo === "number") {
@@ -1953,13 +3026,13 @@ function WorkoutScreen({ day, session, setSession, log, saveSet, videos, media, 
   }, [session.jumpTo]);
   const [rest, setRest] = useState(null);
   const slot = day.slots[idx];
-  const ex = EXERCISES[slot.ex];
+  const ex = getExercise(slot.ex, customExercises);
   const key = `${idx}:${slot.ex}`;
   const entry = session.entries[key] || { sets: [], warmup: null };
   const history = log[slot.ex] || [];
   const prog = getProgression(history, slot.repRange);
 
-  const prevGroup = idx > 0 ? EXERCISES[day.slots[idx - 1].ex].muscleGroup : null;
+  const prevGroup = idx > 0 ? getExercise(day.slots[idx - 1].ex, customExercises).muscleGroup : null;
   const startsGroup = ex.muscleGroup !== prevGroup;
 
   useEffect(() => {
@@ -2268,11 +3341,11 @@ function WorkoutScreen({ day, session, setSession, log, saveSet, videos, media, 
 /* ============================================================================
    15. INICIO
    ========================================================================== */
-function HomeView({ log, schedule, swaps, onGo, onStart }) {
+function HomeView({ log, schedule, swaps, customExercises, onGo, onStart }) {
   const today = todayISO();
   const week = weekOf(today);
   const dayId = dayIdFor(today, schedule);
-  const day = getEffectiveDay(dayId, swaps);
+  const day = getEffectiveDay(dayId, swaps, customExercises);
   const p = dayProgress(log, day, today);
   const st = day ? dayStats(day) : null;
   const totalSets = Object.values(log).reduce(
@@ -2376,7 +3449,7 @@ function HomeView({ log, schedule, swaps, onGo, onStart }) {
 /* ============================================================================
    16. VISTA RUTINA — CALENDARIO + LISTA DE EJERCICIOS
    ========================================================================== */
-function WeekStrip({ selected, onSelect, log, schedule, swaps }) {
+function WeekStrip({ selected, onSelect, log, schedule, swaps, customExercises }) {
   const week = useMemo(() => weekOf(selected), [selected]);
   const d0 = fromISO(week[0]);
   const d6 = fromISO(week[6]);
@@ -2415,7 +3488,7 @@ function WeekStrip({ selected, onSelect, log, schedule, swaps }) {
       <div className="flex" style={{ gap: 6 }}>
         {week.map((dt, i) => {
           const dayId = dayIdFor(dt, schedule);
-          const day = getEffectiveDay(dayId, swaps);
+          const day = getEffectiveDay(dayId, swaps, customExercises);
           const p = dayProgress(log, day, dt);
           const isSel = dt === selected;
           const isToday = dt === todayISO();
@@ -2473,8 +3546,8 @@ function WeekStrip({ selected, onSelect, log, schedule, swaps }) {
   );
 }
 
-function ExerciseRow({ slot, index, videos, media, log, dateISO, isSwapped, onOpen, onToggle, onSwap }) {
-  const ex = EXERCISES[slot.ex];
+function ExerciseRow({ slot, index, videos, media, log, dateISO, isSwapped, onOpen, onToggle, onSwap, customExercises }) {
+  const ex = getExercise(slot.ex, customExercises);
   const p = slotProgress(log, slot, dateISO);
   const scheme = Array.from({ length: slot.sets }, (_, i) => {
     const w = p.weights[i];
@@ -2586,17 +3659,108 @@ function ExerciseRow({ slot, index, videos, media, log, dateISO, isSwapped, onOp
 }
 
 /* --- SELECTOR DE SUSTITUCIÓN DE EJERCICIO ----------------------------------- */
-function ExerciseSwapSheet({ currentExId, originalExId, onPick, onRestore, onClose }) {
+function ExerciseForm({ initial, onCancel, onSave }) {
+  const [name, setName] = useState(initial?.name || "");
+  const [muscleGroup, setMuscleGroup] = useState(initial?.muscleGroup || MUSCLE_GROUPS[0]);
+  const [howTo, setHowTo] = useState(initial?.howTo || "");
+  const valid = name.trim().length > 0 && muscleGroup;
+
+  const inputStyle = {
+    width: "100%",
+    background: C.panel2,
+    border: `1px solid ${C.line}`,
+    borderRadius: 11,
+    padding: "12px 14px",
+    color: C.chalk,
+    fontSize: 16,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: FONT,
+  };
+
+  return (
+    <div style={{ padding: "4px 18px 18px" }}>
+      <Label style={{ marginBottom: 6 }}>Nombre *</Label>
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Ej. Curl 21 con barra"
+        style={{ ...inputStyle, marginBottom: 14 }}
+      />
+
+      <Label style={{ marginBottom: 6 }}>Grupo muscular *</Label>
+      <select
+        value={muscleGroup}
+        onChange={(e) => setMuscleGroup(e.target.value)}
+        style={{ ...inputStyle, marginBottom: 14, appearance: "none" }}
+      >
+        {MUSCLE_GROUPS.map((g) => (
+          <option key={g} value={g}>
+            {g}
+          </option>
+        ))}
+      </select>
+
+      <Label style={{ marginBottom: 6 }}>Descripción (opcional)</Label>
+      <textarea
+        value={howTo}
+        onChange={(e) => setHowTo(e.target.value)}
+        placeholder="Cómo se hace, en pocas palabras…"
+        rows={3}
+        style={{ ...inputStyle, marginBottom: 16, resize: "vertical", fontFamily: FONT }}
+      />
+
+      <div className="flex gap-2">
+        <Btn variant="quiet" onClick={onCancel} style={{ flex: 1 }}>
+          Cancelar
+        </Btn>
+        <Btn
+          variant="signal"
+          disabled={!valid}
+          onClick={() => onSave({ name: name.trim(), muscleGroup, howTo })}
+          style={{ flex: 1 }}
+        >
+          Guardar
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function ExerciseSwapSheet({
+  currentExId,
+  originalExId,
+  log,
+  customExercises,
+  onPick,
+  onRestore,
+  onClose,
+  onCreateExercise,
+  onUpdateExercise,
+  onDeleteExercise,
+}) {
   const [q, setQ] = useState("");
+  const [mode, setMode] = useState("list"); // "list" | "create" | "edit"
+  const [editingId, setEditingId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+
   const query = q.trim().toLowerCase();
+  const allGroups = buildExerciseGroups(customExercises);
   const groups = query
-    ? EXERCISES_BY_GROUP.map((g) => ({
+    ? allGroups.map((g) => ({
         ...g,
         items: g.items.filter(
           (e) => e.name.toLowerCase().includes(query) || e.muscleGroup.toLowerCase().includes(query)
         ),
       })).filter((g) => g.items.length)
-    : EXERCISES_BY_GROUP;
+    : allGroups;
+
+  const deleteTarget = deleteId ? getExercise(deleteId, customExercises) : null;
+  const deleteHistoryCount = deleteId ? (log?.[deleteId] || []).length : 0;
+
+  const title =
+    mode === "create" ? "Nuevo ejercicio" : mode === "edit" ? "Editar ejercicio" : "Sustituir ejercicio";
 
   return (
     <div
@@ -2627,98 +3791,302 @@ function ExerciseSwapSheet({ currentExId, originalExId, onPick, onRestore, onClo
       >
         <div style={{ width: 40, height: 4, background: C.line2, borderRadius: 4, margin: "10px auto 4px", flexShrink: 0 }} />
 
-        <div style={{ padding: "8px 18px 14px", flexShrink: 0 }}>
-          <Label style={{ marginBottom: 10 }}>Sustituir ejercicio</Label>
-          <input
-            autoFocus
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar ejercicio…"
-            style={{
-              width: "100%",
-              background: C.panel2,
-              border: `1px solid ${C.line}`,
-              borderRadius: 11,
-              padding: "12px 14px",
-              color: C.chalk,
-              fontSize: 16,
-              outline: "none",
-              boxSizing: "border-box",
-              fontFamily: FONT,
-              marginBottom: originalExId && currentExId !== originalExId ? 10 : 0,
-            }}
-          />
-          {originalExId && currentExId !== originalExId && (
+        <div className="flex items-center justify-between" style={{ padding: "8px 18px 10px", flexShrink: 0 }}>
+          <Label>{title}</Label>
+          {mode !== "list" && (
             <button
-              onClick={onRestore}
-              className="w-full"
+              onClick={() => setMode("list")}
               style={{
-                background: "transparent",
-                border: `1px solid ${C.line}`,
-                borderRadius: 11,
-                padding: "11px 14px",
+                background: "none",
+                border: "none",
                 color: C.signal,
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
+                padding: 0,
                 fontFamily: FONT,
-                textAlign: "center",
               }}
             >
-              ↺ Restaurar {EXERCISES[originalExId]?.short || "original"}
+              ← Volver
             </button>
           )}
         </div>
 
-        <div style={{ overflowY: "auto", padding: "0 18px 8px" }}>
-          {!groups.some((g) => g.items.length) && (
-            <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-              Sin resultados para "{q}"
+        {mode === "create" && (
+          <ExerciseForm onCancel={() => setMode("list")} onSave={(data) => onCreateExercise(data)} />
+        )}
+
+        {mode === "edit" && editingId && (
+          <ExerciseForm
+            initial={getExercise(editingId, customExercises)}
+            onCancel={() => setMode("list")}
+            onSave={(data) => {
+              onUpdateExercise(editingId, data);
+              setMode("list");
+            }}
+          />
+        )}
+
+        {mode === "list" && (
+          <>
+            <div style={{ padding: "0 18px 14px", flexShrink: 0 }}>
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Buscar ejercicio…"
+                style={{
+                  width: "100%",
+                  background: C.panel2,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 11,
+                  padding: "12px 14px",
+                  color: C.chalk,
+                  fontSize: 16,
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: FONT,
+                  marginBottom: 10,
+                }}
+              />
+              <div className="flex gap-2">
+                {originalExId && currentExId !== originalExId && (
+                  <button
+                    onClick={onRestore}
+                    className="flex items-center justify-center"
+                    style={{
+                      flex: 1,
+                      background: "transparent",
+                      border: `1px solid ${C.line}`,
+                      borderRadius: 11,
+                      padding: "11px 14px",
+                      color: C.signal,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: FONT,
+                      textAlign: "center",
+                    }}
+                  >
+                    ↺ Restaurar {getExercise(originalExId, customExercises).short}
+                  </button>
+                )}
+                <button
+                  onClick={() => setMode("create")}
+                  className="flex items-center justify-center"
+                  style={{
+                    flex: 1,
+                    background: "transparent",
+                    border: `1px dashed ${C.line2}`,
+                    borderRadius: 11,
+                    padding: "11px 14px",
+                    color: C.chalk,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: FONT,
+                    textAlign: "center",
+                  }}
+                >
+                  + Crear ejercicio
+                </button>
+              </div>
             </div>
-          )}
-          {groups.map(
-            (g) =>
-              g.items.length > 0 && (
-                <div key={g.group} style={{ marginBottom: 14 }}>
-                  <Label style={{ marginBottom: 6 }}>{g.group}</Label>
-                  {g.items.map((e) => {
-                    const active = e.id === currentExId;
-                    return (
-                      <button
-                        key={e.id}
-                        onClick={() => onPick(e.id)}
-                        className="flex items-center justify-between w-full"
-                        style={{
-                          background: active ? C.panel2 : "transparent",
-                          border: `1px solid ${active ? C.signal : C.line}`,
-                          borderRadius: 12,
-                          padding: "13px 14px",
-                          marginBottom: 7,
-                          cursor: "pointer",
-                          fontFamily: FONT,
-                          textAlign: "left",
-                        }}
-                      >
-                        <span style={{ color: C.chalk, fontSize: 14, fontWeight: 600 }}>{e.name}</span>
-                        {active && <span style={{ color: C.signal, fontSize: 13 }}>●</span>}
-                      </button>
-                    );
-                  })}
+
+            <div style={{ overflowY: "auto", padding: "0 18px 8px" }}>
+              {!groups.some((g) => g.items.length) && (
+                <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "24px 0" }}>
+                  Sin resultados para "{q}"
                 </div>
-              )
-          )}
-        </div>
+              )}
+              {groups.map(
+                (g) =>
+                  g.items.length > 0 && (
+                    <div key={g.group} style={{ marginBottom: 14 }}>
+                      <Label style={{ marginBottom: 6 }}>{g.group}</Label>
+                      {g.items.map((e) => {
+                        const active = e.id === currentExId;
+                        return (
+                          <div key={e.id} className="flex items-center" style={{ gap: 6, marginBottom: 7 }}>
+                            <button
+                              onClick={() => onPick(e.id)}
+                              className="flex items-center justify-between w-full"
+                              style={{
+                                flex: 1,
+                                minWidth: 0,
+                                background: active ? C.panel2 : "transparent",
+                                border: `1px solid ${active ? C.signal : C.line}`,
+                                borderRadius: 12,
+                                padding: "13px 14px",
+                                cursor: "pointer",
+                                fontFamily: FONT,
+                                textAlign: "left",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color: C.chalk,
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {e.name}
+                              </span>
+                              {active && <span style={{ color: C.signal, fontSize: 13, flexShrink: 0 }}>●</span>}
+                            </button>
+                            {e.custom && (
+                              <>
+                                <button
+                                  aria-label={`Editar ${e.name}`}
+                                  onClick={() => {
+                                    setEditingId(e.id);
+                                    setMode("edit");
+                                  }}
+                                  style={{
+                                    width: 34,
+                                    height: 34,
+                                    flexShrink: 0,
+                                    background: "none",
+                                    border: "none",
+                                    color: C.dim,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    padding: 0,
+                                  }}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                      d="M4 20h4L19.5 8.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z"
+                                      stroke="currentColor"
+                                      strokeWidth="1.8"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                                <button
+                                  aria-label={`Borrar ${e.name}`}
+                                  onClick={() => setDeleteId(e.id)}
+                                  style={{
+                                    width: 34,
+                                    height: 34,
+                                    flexShrink: 0,
+                                    background: "none",
+                                    border: "none",
+                                    color: C.dim,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    padding: 0,
+                                  }}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                      d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13h8l1-13"
+                                      stroke="currentColor"
+                                      strokeWidth="1.8"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+              )}
+            </div>
+          </>
+        )}
+
+        {deleteId && deleteTarget && (
+          <div
+            onClick={() => setDeleteId(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(5,5,6,0.86)",
+              zIndex: 70,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 24,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "100%",
+                maxWidth: 380,
+                background: C.panel,
+                border: `1px solid ${C.line2}`,
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <div style={{ color: C.chalk, fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+                ¿Borrar "{deleteTarget.name}"?
+              </div>
+              <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 18px" }}>
+                {deleteHistoryCount > 0
+                  ? `Tiene ${deleteHistoryCount} sesión${deleteHistoryCount === 1 ? "" : "es"} guardada${
+                      deleteHistoryCount === 1 ? "" : "s"
+                    } en el historial. El historial se conserva, pero el ejercicio dejará de estar disponible para elegirlo.`
+                  : "No tiene historial guardado."}
+              </p>
+              <div className="flex gap-2">
+                <Btn variant="quiet" onClick={() => setDeleteId(null)} style={{ flex: 1 }}>
+                  Cancelar
+                </Btn>
+                <Btn
+                  variant="signal"
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    onDeleteExercise(deleteId);
+                    setDeleteId(null);
+                  }}
+                >
+                  Borrar
+                </Btn>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function RoutineView({ selected, setSelected, log, videos, media, schedule, setDayForDate, onOpenExercise, swaps, onSetExerciseSwap }) {
+function RoutineView({
+  selected,
+  setSelected,
+  log,
+  videos,
+  media,
+  schedule,
+  setDayForDate,
+  onOpenExercise,
+  swaps,
+  onSetExerciseSwap,
+  customExercises,
+  onCreateExercise,
+  onUpdateExercise,
+  onDeleteExercise,
+}) {
   const [picking, setPicking] = useState(false);
   const [swapIndex, setSwapIndex] = useState(null);
   const dayId = dayIdFor(selected, schedule);
   const rawDay = getDay(dayId);
-  const day = getEffectiveDay(dayId, swaps);
+  const day = getEffectiveDay(dayId, swaps, customExercises);
   const p = dayProgress(log, day, selected);
   const d = fromISO(selected);
   const dateLabel = `${WD[(d.getDay() + 6) % 7]}. ${String(d.getDate()).padStart(2, "0")}/${String(
@@ -2728,7 +4096,14 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
   return (
     <div>
       <div style={{ position: "sticky", top: 0, zIndex: 20, background: C.ink }}>
-        <WeekStrip selected={selected} onSelect={setSelected} log={log} schedule={schedule} swaps={swaps} />
+        <WeekStrip
+          selected={selected}
+          onSelect={setSelected}
+          log={log}
+          schedule={schedule}
+          swaps={swaps}
+          customExercises={customExercises}
+        />
       </div>
 
       <div
@@ -2817,6 +4192,7 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
                 onOpen={(idx) => onOpenExercise(day.id, idx, selected)}
                 onToggle={(idx) => onOpenExercise(day.id, idx, selected)}
                 onSwap={setSwapIndex}
+                customExercises={customExercises}
               />
             ))}
 
@@ -2911,6 +4287,8 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
         <ExerciseSwapSheet
           currentExId={day.slots[swapIndex].ex}
           originalExId={rawDay.slots[swapIndex].ex}
+          log={log}
+          customExercises={customExercises}
           onPick={(exId) => {
             onSetExerciseSwap(dayId, swapIndex, exId);
             setSwapIndex(null);
@@ -2919,6 +4297,13 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
             onSetExerciseSwap(dayId, swapIndex, null);
             setSwapIndex(null);
           }}
+          onCreateExercise={(data) => {
+            const id = onCreateExercise(data);
+            onSetExerciseSwap(dayId, swapIndex, id);
+            setSwapIndex(null);
+          }}
+          onUpdateExercise={onUpdateExercise}
+          onDeleteExercise={onDeleteExercise}
           onClose={() => setSwapIndex(null)}
         />
       )}
@@ -2929,15 +4314,20 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
 /* ============================================================================
    17. HISTORIAL GLOBAL
    ========================================================================== */
-function HistoryView({ log, openSheet }) {
-  const entries = Object.keys(EXERCISES)
+function HistoryView({ log, openSheet, swaps, customExercises }) {
+  // Recorre las claves del log, no el catálogo: un ejercicio propio ya
+  // borrado no está en el catálogo pero su historial debe seguir viéndose.
+  const entries = Object.keys(log)
     .map((id) => ({ id, history: log[id] || [] }))
     .filter((e) => e.history.length)
     .sort((a, b) => (a.history[0].date < b.history[0].date ? 1 : -1));
 
+  // Busca en los días YA con sus sustituciones aplicadas: un ejercicio
+  // propio o del catálogo ampliado no aparece nunca en DAYS en crudo.
   const slotFor = (exId) => {
     for (const d of DAYS) {
-      const s = d.slots.find((x) => x.ex === exId);
+      const eff = getEffectiveDay(d.id, swaps, customExercises);
+      const s = eff.slots.find((x) => x.ex === exId);
       if (s) return s;
     }
     return null;
@@ -2956,9 +4346,9 @@ function HistoryView({ log, openSheet }) {
         </div>
       )}
       {entries.map(({ id, history }) => {
-        const slot = slotFor(id);
-        const prog = getProgression(history, slot.repRange);
         const last = history[0];
+        const slot = slotFor(id) || { ex: id, repRange: [last.repMin, last.repMax] };
+        const prog = getProgression(history, slot.repRange);
         const w = Math.max(0, ...last.sets.map((s) => Number(s.weight) || 0));
         return (
           <button
@@ -2979,7 +4369,7 @@ function HistoryView({ log, openSheet }) {
           >
             <div className="flex items-start justify-between" style={{ marginBottom: 8 }}>
               <div>
-                <div style={{ color: C.chalk, fontSize: 14, fontWeight: 700 }}>{EXERCISES[id].name}</div>
+                <div style={{ color: C.chalk, fontSize: 14, fontWeight: 700 }}>{getExercise(id, customExercises).name}</div>
                 <div style={{ color: C.dim, fontSize: 11, marginTop: 3, fontVariantNumeric: "tabular-nums" }}>
                   {fmtDate(last.date)} · {w ? `${w} kg` : "—"} · {last.sets.map((s) => s.reps || "–").join("/")}
                 </div>
@@ -3007,9 +4397,11 @@ function HistoryView({ log, openSheet }) {
 /* ============================================================================
    18. AJUSTES
    ========================================================================== */
-function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset }) {
+function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset, customExercises }) {
   const [confirm, setConfirm] = useState(false);
-  const missing = Object.keys(EXERCISES).filter((id) => !(videos[id] && videos[id].videoId)).length;
+  const allExercises = mergeExercises(customExercises);
+  const exerciseCount = Object.keys(allExercises).length;
+  const missing = Object.keys(allExercises).filter((id) => !(videos[id] && videos[id].videoId)).length;
   const mediaKB = Math.round(
     Object.values(media).reduce((a, v) => a + (v ? v.length : 0), 0) / 1024
   );
@@ -3024,7 +4416,7 @@ function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset }) {
       <Panel style={{ padding: 17, marginBottom: 18 }}>
         <Label>Ejercicios con imagen</Label>
         <div style={{ color: C.chalk, fontSize: 26, fontWeight: 800, margin: "6px 0 6px", fontVariantNumeric: "tabular-nums" }}>
-          {Object.keys(media).length} / {Object.keys(EXERCISES).length}
+          {Object.keys(media).length} / {exerciseCount}
         </div>
         <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 4px" }}>
           Guarda un GIF o imagen para cada ejercicio desde el carrete del móvil. Ocupado: {mediaKB} KB
@@ -3035,7 +4427,7 @@ function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset }) {
       <Panel style={{ padding: 17, marginBottom: 18 }}>
         <Label>Vídeos pendientes</Label>
         <div style={{ color: C.chalk, fontSize: 26, fontWeight: 800, margin: "6px 0 6px", fontVariantNumeric: "tabular-nums" }}>
-          {missing} / {Object.keys(EXERCISES).length}
+          {missing} / {exerciseCount}
         </div>
         <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: 0 }}>
           Pega el enlace de YouTube de cada ejercicio. Se guarda en el dispositivo y sustituye al valor del
@@ -3043,7 +4435,7 @@ function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset }) {
         </p>
       </Panel>
 
-      {Object.values(EXERCISES).map((ex) => {
+      {Object.values(allExercises).map((ex) => {
         const vid = videos[ex.id]?.videoId;
         const img = media[ex.id];
         return (
@@ -3176,15 +4568,17 @@ export default function App() {
   const [training, setTraining] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [swaps, setSwaps] = useState({});
+  const [customExercises, setCustomExercises] = useState({});
 
   useEffect(() => {
     (async () => {
-      const [l, cfg, ses, md, sw] = await Promise.all([
+      const [l, cfg, ses, md, sw, cex] = await Promise.all([
         loadKey(K_LOG, {}),
         loadKey(K_CFG, {}),
         loadKey(K_SESSION, null),
         loadKey(K_MEDIA, {}),
         loadKey(K_SWAPS, {}),
+        loadKey(K_EXERCISES, {}),
       ]);
       setLog(l || {});
       setMedia(md || {});
@@ -3198,6 +4592,7 @@ export default function App() {
       if (cfg?.schedule) setSchedule(cfg.schedule);
       if (ses) setSession(ses);
       setSwaps(sw || {});
+      setCustomExercises(cex || {});
       setReady(true);
     })();
   }, []);
@@ -3251,6 +4646,64 @@ export default function App() {
       else delete next[key];
       saveKey(K_SWAPS, next);
       return next;
+    });
+  }, []);
+
+  const createExercise = useCallback((data) => {
+    const id = `custom-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    const ex = normalizeExercise({
+      id,
+      custom: true,
+      name: data.name.trim(),
+      short: data.name.trim(),
+      muscleGroup: data.muscleGroup,
+      howTo: (data.howTo || "").trim(),
+    });
+    setCustomExercises((prev) => {
+      const next = { ...prev, [id]: ex };
+      saveKey(K_EXERCISES, next);
+      return next;
+    });
+    return id;
+  }, []);
+
+  const updateExercise = useCallback((id, data) => {
+    setCustomExercises((prev) => {
+      if (!prev[id]) return prev;
+      const next = {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          name: data.name.trim(),
+          short: data.name.trim(),
+          muscleGroup: data.muscleGroup,
+          howTo: (data.howTo || "").trim(),
+        },
+      };
+      saveKey(K_EXERCISES, next);
+      return next;
+    });
+  }, []);
+
+  const deleteExercise = useCallback((id) => {
+    setCustomExercises((prev) => {
+      if (!(id in prev)) return prev;
+      const next = { ...prev };
+      delete next[id];
+      saveKey(K_EXERCISES, next);
+      return next;
+    });
+    setSwaps((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const k of Object.keys(next)) {
+        if (next[k] === id) {
+          delete next[k];
+          changed = true;
+        }
+      }
+      if (changed) saveKey(K_SWAPS, next);
+      return changed ? next : prev;
     });
   }, []);
 
@@ -3351,7 +4804,7 @@ export default function App() {
     ["perfil", "Perfil"],
   ];
 
-  const sessionDay = session ? getEffectiveDay(session.dayId, swaps) : null;
+  const sessionDay = session ? getEffectiveDay(session.dayId, swaps, customExercises) : null;
 
   return (
     <div
@@ -3375,6 +4828,7 @@ export default function App() {
             onSetVideo={setVideo}
             onExit={() => setTraining(false)}
             openSheet={openSheet}
+            customExercises={customExercises}
           />
         ) : (
           <>
@@ -3383,6 +4837,7 @@ export default function App() {
                 log={log}
                 schedule={schedule}
                 swaps={swaps}
+                customExercises={customExercises}
                 onGo={(dateISO) => {
                   setSelected(dateISO);
                   setView("rutina");
@@ -3402,9 +4857,15 @@ export default function App() {
                 onOpenExercise={openExercise}
                 swaps={swaps}
                 onSetExerciseSwap={setExerciseSwap}
+                customExercises={customExercises}
+                onCreateExercise={createExercise}
+                onUpdateExercise={updateExercise}
+                onDeleteExercise={deleteExercise}
               />
             )}
-            {view === "progreso" && <HistoryView log={log} openSheet={openSheet} />}
+            {view === "progreso" && (
+              <HistoryView log={log} openSheet={openSheet} swaps={swaps} customExercises={customExercises} />
+            )}
             {view === "perfil" && (
               <SettingsView
                 videos={videos}
@@ -3412,6 +4873,7 @@ export default function App() {
                 onSetVideo={setVideo}
                 onSetMedia={setMediaFor}
                 onReset={resetAll}
+                customExercises={customExercises}
               />
             )}
           </>
@@ -3485,6 +4947,7 @@ export default function App() {
           onSetVideo={setVideo}
           history={log[sheet.slot.ex] || []}
           onClose={() => setSheet(null)}
+          customExercises={customExercises}
         />
       )}
     </div>
