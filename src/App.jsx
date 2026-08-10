@@ -878,6 +878,13 @@ const WARMUP = {
   ],
 };
 
+/* Catálogo agrupado por grupo muscular, en el mismo orden que WARMUP.
+   Lo usa el selector de sustitución de ejercicios. */
+const EXERCISES_BY_GROUP = Object.keys(WARMUP).map((group) => ({
+  group,
+  items: Object.values(EXERCISES).filter((e) => e.muscleGroup === group),
+}));
+
 /* ============================================================================
    4. ALMACENAMIENTO
    ========================================================================== */
@@ -885,6 +892,7 @@ const K_LOG = "hipertrofia:log:v1";
 const K_CFG = "hipertrofia:config:v1";
 const K_SESSION = "hipertrofia:session:v1";
 const K_MEDIA = "hipertrofia:media:v1";
+const K_SWAPS = "hipertrofia:swaps:v1";
 
 async function loadKey(key, fallback) {
   try {
@@ -1021,6 +1029,27 @@ function dayIdFor(dateISO, schedule) {
   return DEFAULT_WEEK[dow];
 }
 const getDay = (id) => DAYS.find((d) => d.id === id) || null;
+
+/* --- SUSTITUCIONES DE EJERCICIO ---------------------------------------------
+   DAYS no se toca. Las sustituciones viven aparte (hipertrofia:swaps:v1,
+   clave `${dayId}:${index}` → exerciseId) y se aplican solo sobre el campo
+   `ex` de cada slot al leerlo. Todo lo demás del slot (series, reps, RIR,
+   descanso) sigue viniendo de DAYS tal cual. */
+const swapKey = (dayId, index) => `${dayId}:${index}`;
+function getEffectiveDay(dayId, swaps) {
+  const day = getDay(dayId);
+  if (!day || !swaps) return day;
+  let changed = false;
+  const slots = day.slots.map((slot, i) => {
+    const exId = swaps[swapKey(dayId, i)];
+    if (exId && exId !== slot.ex && EXERCISES[exId]) {
+      changed = true;
+      return { ...slot, ex: exId };
+    }
+    return slot;
+  });
+  return changed ? { ...day, slots } : day;
+}
 
 /* --- MINIATURA ------------------------------------------------------------- */
 function thumbUrl(videos, exId) {
@@ -2239,11 +2268,11 @@ function WorkoutScreen({ day, session, setSession, log, saveSet, videos, media, 
 /* ============================================================================
    15. INICIO
    ========================================================================== */
-function HomeView({ log, schedule, onGo, onStart }) {
+function HomeView({ log, schedule, swaps, onGo, onStart }) {
   const today = todayISO();
   const week = weekOf(today);
   const dayId = dayIdFor(today, schedule);
-  const day = getDay(dayId);
+  const day = getEffectiveDay(dayId, swaps);
   const p = dayProgress(log, day, today);
   const st = day ? dayStats(day) : null;
   const totalSets = Object.values(log).reduce(
@@ -2347,7 +2376,7 @@ function HomeView({ log, schedule, onGo, onStart }) {
 /* ============================================================================
    16. VISTA RUTINA — CALENDARIO + LISTA DE EJERCICIOS
    ========================================================================== */
-function WeekStrip({ selected, onSelect, log, schedule }) {
+function WeekStrip({ selected, onSelect, log, schedule, swaps }) {
   const week = useMemo(() => weekOf(selected), [selected]);
   const d0 = fromISO(week[0]);
   const d6 = fromISO(week[6]);
@@ -2386,7 +2415,7 @@ function WeekStrip({ selected, onSelect, log, schedule }) {
       <div className="flex" style={{ gap: 6 }}>
         {week.map((dt, i) => {
           const dayId = dayIdFor(dt, schedule);
-          const day = getDay(dayId);
+          const day = getEffectiveDay(dayId, swaps);
           const p = dayProgress(log, day, dt);
           const isSel = dt === selected;
           const isToday = dt === todayISO();
@@ -2444,7 +2473,7 @@ function WeekStrip({ selected, onSelect, log, schedule }) {
   );
 }
 
-function ExerciseRow({ slot, index, videos, media, log, dateISO, onOpen, onToggle }) {
+function ExerciseRow({ slot, index, videos, media, log, dateISO, isSwapped, onOpen, onToggle, onSwap }) {
   const ex = EXERCISES[slot.ex];
   const p = slotProgress(log, slot, dateISO);
   const scheme = Array.from({ length: slot.sets }, (_, i) => {
@@ -2500,6 +2529,32 @@ function ExerciseRow({ slot, index, videos, media, log, dateISO, onOpen, onToggl
         </div>
       </button>
       <button
+        onClick={() => onSwap(index)}
+        aria-label={isSwapped ? "Ejercicio sustituido. Cambiar de nuevo" : "Sustituir ejercicio"}
+        style={{
+          width: 34,
+          height: 34,
+          flexShrink: 0,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+        }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M4 8h13M17 8l-4-4M17 8l-4 4M20 16H7M7 16l4-4M7 16l4 4"
+            stroke={isSwapped ? C.signal : C.dim}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      <button
         onClick={() => onToggle(index)}
         aria-label={p.complete ? "Marcar como pendiente" : "Marcar como completado"}
         style={{
@@ -2530,10 +2585,140 @@ function ExerciseRow({ slot, index, videos, media, log, dateISO, onOpen, onToggl
   );
 }
 
-function RoutineView({ selected, setSelected, log, videos, media, schedule, setDayForDate, onOpenExercise }) {
+/* --- SELECTOR DE SUSTITUCIÓN DE EJERCICIO ----------------------------------- */
+function ExerciseSwapSheet({ currentExId, originalExId, onPick, onRestore, onClose }) {
+  const [q, setQ] = useState("");
+  const query = q.trim().toLowerCase();
+  const groups = query
+    ? EXERCISES_BY_GROUP.map((g) => ({
+        ...g,
+        items: g.items.filter(
+          (e) => e.name.toLowerCase().includes(query) || e.muscleGroup.toLowerCase().includes(query)
+        ),
+      })).filter((g) => g.items.length)
+    : EXERCISES_BY_GROUP;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(5,5,6,0.86)",
+        zIndex: 60,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 520,
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+          background: C.ink,
+          borderRadius: "22px 22px 0 0",
+          borderTop: `1px solid ${C.line2}`,
+          paddingBottom: "calc(18px + env(safe-area-inset-bottom, 0px))",
+        }}
+      >
+        <div style={{ width: 40, height: 4, background: C.line2, borderRadius: 4, margin: "10px auto 4px", flexShrink: 0 }} />
+
+        <div style={{ padding: "8px 18px 14px", flexShrink: 0 }}>
+          <Label style={{ marginBottom: 10 }}>Sustituir ejercicio</Label>
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar ejercicio…"
+            style={{
+              width: "100%",
+              background: C.panel2,
+              border: `1px solid ${C.line}`,
+              borderRadius: 11,
+              padding: "12px 14px",
+              color: C.chalk,
+              fontSize: 16,
+              outline: "none",
+              boxSizing: "border-box",
+              fontFamily: FONT,
+              marginBottom: originalExId && currentExId !== originalExId ? 10 : 0,
+            }}
+          />
+          {originalExId && currentExId !== originalExId && (
+            <button
+              onClick={onRestore}
+              className="w-full"
+              style={{
+                background: "transparent",
+                border: `1px solid ${C.line}`,
+                borderRadius: 11,
+                padding: "11px 14px",
+                color: C.signal,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: FONT,
+                textAlign: "center",
+              }}
+            >
+              ↺ Restaurar {EXERCISES[originalExId]?.short || "original"}
+            </button>
+          )}
+        </div>
+
+        <div style={{ overflowY: "auto", padding: "0 18px 8px" }}>
+          {!groups.some((g) => g.items.length) && (
+            <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "24px 0" }}>
+              Sin resultados para "{q}"
+            </div>
+          )}
+          {groups.map(
+            (g) =>
+              g.items.length > 0 && (
+                <div key={g.group} style={{ marginBottom: 14 }}>
+                  <Label style={{ marginBottom: 6 }}>{g.group}</Label>
+                  {g.items.map((e) => {
+                    const active = e.id === currentExId;
+                    return (
+                      <button
+                        key={e.id}
+                        onClick={() => onPick(e.id)}
+                        className="flex items-center justify-between w-full"
+                        style={{
+                          background: active ? C.panel2 : "transparent",
+                          border: `1px solid ${active ? C.signal : C.line}`,
+                          borderRadius: 12,
+                          padding: "13px 14px",
+                          marginBottom: 7,
+                          cursor: "pointer",
+                          fontFamily: FONT,
+                          textAlign: "left",
+                        }}
+                      >
+                        <span style={{ color: C.chalk, fontSize: 14, fontWeight: 600 }}>{e.name}</span>
+                        {active && <span style={{ color: C.signal, fontSize: 13 }}>●</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoutineView({ selected, setSelected, log, videos, media, schedule, setDayForDate, onOpenExercise, swaps, onSetExerciseSwap }) {
   const [picking, setPicking] = useState(false);
+  const [swapIndex, setSwapIndex] = useState(null);
   const dayId = dayIdFor(selected, schedule);
-  const day = getDay(dayId);
+  const rawDay = getDay(dayId);
+  const day = getEffectiveDay(dayId, swaps);
   const p = dayProgress(log, day, selected);
   const d = fromISO(selected);
   const dateLabel = `${WD[(d.getDay() + 6) % 7]}. ${String(d.getDate()).padStart(2, "0")}/${String(
@@ -2543,7 +2728,7 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
   return (
     <div>
       <div style={{ position: "sticky", top: 0, zIndex: 20, background: C.ink }}>
-        <WeekStrip selected={selected} onSelect={setSelected} log={log} schedule={schedule} />
+        <WeekStrip selected={selected} onSelect={setSelected} log={log} schedule={schedule} swaps={swaps} />
       </div>
 
       <div
@@ -2628,8 +2813,10 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
                 media={media}
                 log={log}
                 dateISO={selected}
+                isSwapped={slot.ex !== rawDay.slots[i].ex}
                 onOpen={(idx) => onOpenExercise(day.id, idx, selected)}
                 onToggle={(idx) => onOpenExercise(day.id, idx, selected)}
+                onSwap={setSwapIndex}
               />
             ))}
 
@@ -2718,6 +2905,22 @@ function RoutineView({ selected, setSelected, log, videos, media, schedule, setD
             </button>
           </div>
         </div>
+      )}
+
+      {swapIndex !== null && day && (
+        <ExerciseSwapSheet
+          currentExId={day.slots[swapIndex].ex}
+          originalExId={rawDay.slots[swapIndex].ex}
+          onPick={(exId) => {
+            onSetExerciseSwap(dayId, swapIndex, exId);
+            setSwapIndex(null);
+          }}
+          onRestore={() => {
+            onSetExerciseSwap(dayId, swapIndex, null);
+            setSwapIndex(null);
+          }}
+          onClose={() => setSwapIndex(null)}
+        />
       )}
     </div>
   );
@@ -2972,14 +3175,16 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [training, setTraining] = useState(false);
   const [sheet, setSheet] = useState(null);
+  const [swaps, setSwaps] = useState({});
 
   useEffect(() => {
     (async () => {
-      const [l, cfg, ses, md] = await Promise.all([
+      const [l, cfg, ses, md, sw] = await Promise.all([
         loadKey(K_LOG, {}),
         loadKey(K_CFG, {}),
         loadKey(K_SESSION, null),
         loadKey(K_MEDIA, {}),
+        loadKey(K_SWAPS, {}),
       ]);
       setLog(l || {});
       setMedia(md || {});
@@ -2992,6 +3197,7 @@ export default function App() {
       }
       if (cfg?.schedule) setSchedule(cfg.schedule);
       if (ses) setSession(ses);
+      setSwaps(sw || {});
       setReady(true);
     })();
   }, []);
@@ -3033,6 +3239,17 @@ export default function App() {
     setSchedule((sc) => {
       const next = { ...sc, [dateISO]: dayId };
       loadKey(K_CFG, {}).then((cfg) => saveKey(K_CFG, { ...cfg, schedule: next }));
+      return next;
+    });
+  }, []);
+
+  const setExerciseSwap = useCallback((dayId, index, exId) => {
+    setSwaps((prev) => {
+      const key = swapKey(dayId, index);
+      const next = { ...prev };
+      if (exId) next[key] = exId;
+      else delete next[key];
+      saveKey(K_SWAPS, next);
       return next;
     });
   }, []);
@@ -3134,7 +3351,7 @@ export default function App() {
     ["perfil", "Perfil"],
   ];
 
-  const sessionDay = session ? getDay(session.dayId) : null;
+  const sessionDay = session ? getEffectiveDay(session.dayId, swaps) : null;
 
   return (
     <div
@@ -3165,6 +3382,7 @@ export default function App() {
               <HomeView
                 log={log}
                 schedule={schedule}
+                swaps={swaps}
                 onGo={(dateISO) => {
                   setSelected(dateISO);
                   setView("rutina");
@@ -3182,6 +3400,8 @@ export default function App() {
                 schedule={schedule}
                 setDayForDate={setDayForDate}
                 onOpenExercise={openExercise}
+                swaps={swaps}
+                onSetExerciseSwap={setExerciseSwap}
               />
             )}
             {view === "progreso" && <HistoryView log={log} openSheet={openSheet} />}
