@@ -7,7 +7,7 @@ iPhone, instalada en la pantalla de inicio. Todo lo demás es secundario.
 
 Proyecto Vite real (no un HTML autocontenido):
 
-- `src/App.jsx` — fuente única. Un solo archivo, ~5.000 líneas, React sin router.
+- `src/App.jsx` — fuente única. Un solo archivo, ~5.600 líneas, React sin router.
 - `index.html` — solo el entry point de Vite (`<div id="root">` + `<script
   type="module" src="/src/main.jsx">`). El bundle real lo genera
   `npm run build` en `dist/`, que se despliega solo (ver "Cómo desplegar").
@@ -27,7 +27,8 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
   calendario), `hipertrofia:session:v1` (sesión en curso), `hipertrofia:media:v1`
   (imágenes/GIFs en base64), `hipertrofia:swaps:v1` (sustituciones de ejercicio
   por slot, ver más abajo), `hipertrofia:exercises:v1` (ejercicios creados por
-  el usuario).
+  el usuario), `hipertrofia:nutrition:v1` (calculadora nutricional + peso, ver
+  más abajo).
 - Límite de ~5 MB en localStorage. Los GIFs se guardan en base64, así que
   cuidado al añadir funciones que escriban mucho.
 
@@ -54,6 +55,31 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
   están en ningún catálogo ni sustitución activa (ejercicio propio borrado).
   `HistoryView` recorre `Object.keys(log)`, no el catálogo, precisamente para
   no perder esas entradas huérfanas.
+
+## Nutrición (pestaña Dieta)
+
+- `computeNutritionTargets(profile, adjustment)` es pura, sin efectos, igual
+  que `getProgression`: recibe el perfil (sexo/edad/altura/peso/actividad/
+  objetivo) y el ajuste acumulado, y devuelve BMR, TDEE y el objetivo de
+  calorías/macros para la media diaria, día de entreno y día de descanso.
+- **El suelo de seguridad (nunca por debajo del BMR ni más de 25% de déficit
+  sobre el TDEE) se aplica tres veces por separado** — a la media, al día de
+  entreno y al día de descanso ya calculados — no solo a la media. El reparto
+  entreno/descanso (`TRAINING_DAY_MULT`/`REST_DAY_MULT`, ×1.05/×0.875) hace
+  que el día de descanso reciba menos que la media, así que puede caer por
+  debajo del suelo aunque la media esté bien; si solo se protegiera la media,
+  el número que ve el usuario en "Descanso" podría estar mal. Verificado con
+  un caso real (mujer 45kg/150cm/25a/sedentaria/definición): sin este fix, el
+  día de descanso caía a 964 kcal con un BMR de 1102.
+- `movingAverage7` da un punto por entrada de peso real (no por día natural),
+  porque `Chart` posiciona los puntos por índice del array, no por fecha —
+  igual que `HistoryBody` con las sesiones de entreno.
+- `getCalorieAdjustmentSuggestion` exige ≥21 días de datos y una densidad
+  mínima en ambos extremos del periodo antes de sugerir nada; nunca cambia
+  las calorías sola, solo ofrece un botón "Aplicar" que el usuario pulsa. El
+  ajuste aplicado (`adjustment.amount`) se resetea a `null` si el usuario
+  cambia de objetivo (`saveNutritionProfile`), porque un ajuste calibrado
+  para "definición" no tiene sentido arrastrado a "volumen".
 
 ## Reglas de la rutina — NO MODIFICAR
 

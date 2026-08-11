@@ -1940,6 +1940,8 @@ const K_SESSION = "hipertrofia:session:v1";
 const K_MEDIA = "hipertrofia:media:v1";
 const K_SWAPS = "hipertrofia:swaps:v1";
 const K_EXERCISES = "hipertrofia:exercises:v1";
+const K_NUTRITION = "hipertrofia:nutrition:v1";
+const NUTRITION_DEFAULT = { profile: null, weights: [], adjustment: null };
 
 async function loadKey(key, fallback) {
   try {
@@ -2015,6 +2017,153 @@ function getProgression(history, repRange) {
     title: "MANTÉN EL PESO E INTENTA MEJORAR LAS REPETICIONES",
     detail: `Alguna serie cayó por debajo de ${min}. Consolida este peso hasta completar todas las series dentro del rango.`,
     lastWeight,
+  };
+}
+
+/* ============================================================================
+   5b. LÓGICA DE NUTRICIÓN
+   ========================================================================== */
+const ACTIVITY_FACTORS = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
+const ACTIVITY_LABELS = {
+  sedentary: "Sedentario",
+  light: "Ligero",
+  moderate: "Moderado",
+  active: "Activo",
+  very_active: "Muy activo",
+};
+const ACTIVITY_DESCRIPTIONS = {
+  sedentary: "Poco o ningún ejercicio",
+  light: "Ejercicio ligero 1-3 días/semana",
+  moderate: "Ejercicio moderado 3-5 días/semana",
+  active: "Ejercicio intenso 6-7 días/semana",
+  very_active: "Ejercicio muy intenso o trabajo físico",
+};
+const GOAL_KCAL_PCT = { bulk: 0.125, recomp: 0, cut: -0.175 }; // ajuste sobre TDEE
+const GOAL_WEEKLY_RATE = { bulk: 0.00375, recomp: 0, cut: -0.0075 }; // % peso corporal / semana esperado
+const GOAL_LABELS = { bulk: "Volumen", recomp: "Recomposición", cut: "Definición" };
+const PROTEIN_PER_KG = { bulk: 2.0, recomp: 2.0, cut: 2.3 };
+const FAT_PER_KG_MIN = 0.8;
+const TRAINING_DAY_MULT = 1.05;
+const REST_DAY_MULT = 0.875; // 5×1.05 + 2×0.875 = 7 exacto: misma media semanal
+
+function mifflinBMR(sex, weightKg, heightCm, age) {
+  const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
+  return sex === "m" ? base + 5 : base - 161;
+}
+
+/* Nunca por debajo del metabolismo basal ni más de un 25% de déficit sobre
+   el gasto total. Se aplica por separado a la media, al día de entreno y al
+   de descanso: si solo se aplicara a la media, el día de descanso (que
+   recibe menos que la media) podría caer por debajo del BMR sin que se
+   notase en el número que más se enseña. La seguridad manda sobre la
+   precisión de la media semanal. */
+function applySafetyFloor(kcal, bmr, tdee) {
+  const floor = Math.max(bmr, tdee * 0.75);
+  return kcal < floor ? { value: floor, limited: true } : { value: kcal, limited: false };
+}
+
+function macrosForCalories(calories, weightKg, proteinPerKg) {
+  const protein = Math.round(proteinPerKg * weightKg);
+  const fat = Math.round(FAT_PER_KG_MIN * weightKg);
+  const carbCals = calories - protein * 4 - fat * 9;
+  const carbsClamped = carbCals < 0;
+  const carbs = Math.round(Math.max(0, carbCals) / 4);
+  return { protein, fat, carbs, carbsClamped };
+}
+
+/* Sin efectos secundarios, como getProgression: recibe perfil + ajuste ya
+   guardados y devuelve todo lo necesario para pintar las tarjetas. */
+function computeNutritionTargets(profile, adjustment) {
+  const { sex, weightKg, heightCm, age, activity, goal } = profile;
+  const bmr = mifflinBMR(sex, weightKg, heightCm, age);
+  const tdee = bmr * (ACTIVITY_FACTORS[activity] || ACTIVITY_FACTORS.moderate);
+  const base = tdee * (1 + (GOAL_KCAL_PCT[goal] || 0)) + (adjustment?.amount || 0);
+
+  const avgFloor = applySafetyFloor(base, bmr, tdee);
+  const trainingFloor = applySafetyFloor(avgFloor.value * TRAINING_DAY_MULT, bmr, tdee);
+  const restFloor = applySafetyFloor(avgFloor.value * REST_DAY_MULT, bmr, tdee);
+
+  const proteinPerKg = PROTEIN_PER_KG[goal] || PROTEIN_PER_KG.recomp;
+  return {
+    bmr: Math.round(bmr),
+    tdee: Math.round(tdee),
+    avg: { calories: Math.round(avgFloor.value), limited: avgFloor.limited },
+    training: {
+      calories: Math.round(trainingFloor.value),
+      limited: trainingFloor.limited,
+      ...macrosForCalories(trainingFloor.value, weightKg, proteinPerKg),
+    },
+    rest: {
+      calories: Math.round(restFloor.value),
+      limited: restFloor.limited,
+      ...macrosForCalories(restFloor.value, weightKg, proteinPerKg),
+    },
+    anyLimited: avgFloor.limited || trainingFloor.limited || restFloor.limited,
+  };
+}
+
+/* Sobrescribe si ya hay una entrada para esa fecha (mismo patrón que
+   saveSet con el historial de series), ordena desc. */
+function upsertWeightEntry(weights, date, weight) {
+  const list = [...weights];
+  const i = list.findIndex((w) => w.date === date);
+  if (i >= 0) list[i] = { date, weight };
+  else list.unshift({ date, weight });
+  list.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return list;
+}
+
+/* Un punto por entrada real (no por día natural): Chart posiciona los
+   puntos por índice del array, así que un hueco sin dato distorsionaría el
+   eje X igual que le pasaría a HistoryBody con las sesiones. Cada punto es
+   la media de los últimos <=7 días naturales terminando en esa fecha. */
+function movingAverage7(weights) {
+  const sorted = [...weights].sort((a, b) => (a.date < b.date ? -1 : 1));
+  return sorted.map((entry, i) => {
+    const cutoff = addDays(entry.date, -6);
+    const window = sorted.slice(0, i + 1).filter((e) => e.date >= cutoff);
+    const avg = window.reduce((a, e) => a + e.weight, 0) / window.length;
+    return { date: entry.date, weight: Math.round(avg * 10) / 10 };
+  });
+}
+
+/* Solo cuenta lo registrado después del último ajuste aplicado, para que una
+   sugerencia nueva no mezcle la tendencia de antes y después de aplicar la
+   anterior. */
+function trendWindow(weights, adjustment) {
+  if (!adjustment?.appliedAt) return weights;
+  return weights.filter((w) => w.date > adjustment.appliedAt);
+}
+
+function getCalorieAdjustmentSuggestion(profile, weights, adjustment) {
+  const window = trendWindow(weights, adjustment);
+  if (window.length < 2) return { code: "insufficient_data" };
+  const sorted = [...window].sort((a, b) => (a.date < b.date ? -1 : 1));
+  const first = sorted[0],
+    last = sorted[sorted.length - 1];
+  const daysSpan = (fromISO(last.date) - fromISO(first.date)) / 86400000;
+  if (daysSpan < 21) return { code: "insufficient_data" };
+
+  const inWindow = (from, to) => sorted.filter((e) => e.date >= from && e.date <= to).length;
+  if (inWindow(first.date, addDays(first.date, 6)) < 2 || inWindow(addDays(last.date, -6), last.date) < 2) {
+    return { code: "low_density" };
+  }
+
+  const avg = movingAverage7(sorted);
+  const weeks = daysSpan / 7;
+  const actualWeeklyKg = (avg[avg.length - 1].weight - avg[0].weight) / weeks;
+  const expectedWeeklyKg = (GOAL_WEEKLY_RATE[profile.goal] || 0) * avg[avg.length - 1].weight;
+  const diffKg = expectedWeeklyKg - actualWeeklyKg;
+  if (Math.abs(diffKg) < 0.1) return { code: "on_track", actualWeeklyKg, expectedWeeklyKg };
+
+  const deltaKcal = Math.round((diffKg * 7700) / 7 / 25) * 25;
+  if (deltaKcal === 0) return { code: "on_track", actualWeeklyKg, expectedWeeklyKg };
+  return {
+    code: deltaKcal > 0 ? "increase" : "decrease",
+    actualWeeklyKg: Math.round(actualWeeklyKg * 100) / 100,
+    expectedWeeklyKg: Math.round(expectedWeeklyKg * 100) / 100,
+    weeks: Math.round(weeks * 10) / 10,
+    deltaKcal,
   };
 }
 
@@ -4554,6 +4703,408 @@ function SettingsView({ videos, media, onSetVideo, onSetMedia, onReset, customEx
 }
 
 /* ============================================================================
+   18b. DIETA
+   ========================================================================== */
+function NutritionForm({ initial, onCancel, onSave }) {
+  const [sex, setSex] = useState(initial?.sex || "m");
+  const [age, setAge] = useState(initial?.age ? String(initial.age) : "");
+  const [heightCm, setHeightCm] = useState(initial?.heightCm ? String(initial.heightCm) : "");
+  const [weightKg, setWeightKg] = useState(initial?.weightKg ?? "");
+  const [activity, setActivity] = useState(initial?.activity || "moderate");
+  const [goal, setGoal] = useState(initial?.goal || "recomp");
+
+  const ageNum = Number(age);
+  const heightNum = Number(heightCm);
+  const weightNum = Number(weightKg);
+  const valid = ageNum > 0 && ageNum < 100 && heightNum > 0 && heightNum < 250 && weightNum > 0 && weightNum < 300;
+
+  const inputStyle = {
+    width: "100%",
+    background: C.panel2,
+    border: `1px solid ${C.line}`,
+    borderRadius: 11,
+    padding: "12px 14px",
+    color: C.chalk,
+    fontSize: 16,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: FONT,
+  };
+
+  const Pill = ({ active, onClick, children }) => (
+    <button
+      onClick={onClick}
+      className="flex items-center justify-center"
+      style={{
+        flex: 1,
+        padding: "11px 6px",
+        borderRadius: 11,
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+        background: active ? C.panel2 : "transparent",
+        color: active ? C.chalk : C.dim,
+        border: `1px solid ${active ? C.signal : C.line}`,
+        fontFamily: FONT,
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <div>
+      <Label style={{ marginBottom: 6 }}>Sexo</Label>
+      <div className="flex gap-2" style={{ marginBottom: 14 }}>
+        <Pill active={sex === "m"} onClick={() => setSex("m")}>
+          Hombre
+        </Pill>
+        <Pill active={sex === "f"} onClick={() => setSex("f")}>
+          Mujer
+        </Pill>
+      </div>
+
+      <div className="flex gap-2" style={{ marginBottom: 14 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Label style={{ marginBottom: 6 }}>Edad</Label>
+          <input
+            value={age}
+            onChange={(e) => setAge(e.target.value.replace(/[^\d]/g, ""))}
+            inputMode="numeric"
+            placeholder="30"
+            style={inputStyle}
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Label style={{ marginBottom: 6 }}>Altura (cm)</Label>
+          <input
+            value={heightCm}
+            onChange={(e) => setHeightCm(e.target.value.replace(/[^\d]/g, ""))}
+            inputMode="numeric"
+            placeholder="175"
+            style={inputStyle}
+          />
+        </div>
+      </div>
+
+      <Label style={{ marginBottom: 6 }}>Peso (kg)</Label>
+      <div style={{ marginBottom: 14 }}>
+        <Stepper value={weightKg} onChange={setWeightKg} step={0.5} decimals={1} />
+      </div>
+
+      <Label style={{ marginBottom: 6 }}>Nivel de actividad</Label>
+      <select
+        value={activity}
+        onChange={(e) => setActivity(e.target.value)}
+        style={{ ...inputStyle, marginBottom: 14, appearance: "none" }}
+      >
+        {Object.keys(ACTIVITY_FACTORS).map((a) => (
+          <option key={a} value={a}>
+            {ACTIVITY_LABELS[a]} — {ACTIVITY_DESCRIPTIONS[a]}
+          </option>
+        ))}
+      </select>
+
+      <Label style={{ marginBottom: 6 }}>Objetivo</Label>
+      <div className="flex gap-2" style={{ marginBottom: 20 }}>
+        {Object.keys(GOAL_LABELS).map((g) => (
+          <Pill key={g} active={goal === g} onClick={() => setGoal(g)}>
+            {GOAL_LABELS[g]}
+          </Pill>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <Btn variant="quiet" onClick={onCancel} style={{ flex: 1 }}>
+          Cancelar
+        </Btn>
+        <Btn
+          variant="signal"
+          disabled={!valid}
+          onClick={() =>
+            onSave({ sex, age: ageNum, heightCm: heightNum, weightKg: weightNum, activity, goal })
+          }
+          style={{ flex: 1 }}
+        >
+          Guardar
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function NutritionResultCard({ targets, isTrainingToday }) {
+  const Macro = ({ label, value }) => (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ color: C.chalk, fontSize: 16, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>
+        {value}g
+      </div>
+      <Label
+        style={{
+          marginTop: 2,
+          letterSpacing: "0.03em",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {label}
+      </Label>
+    </div>
+  );
+  const DayCard = ({ title, day, active }) => (
+    <div
+      style={{
+        flex: 1,
+        minWidth: 0,
+        background: active ? C.signalDim : C.panel2,
+        border: `1px solid ${active ? C.signal : C.line}`,
+        borderRadius: 14,
+        padding: 14,
+      }}
+    >
+      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+        <Label>{title}</Label>
+        {active && <span style={{ color: C.signal, fontSize: 10, fontWeight: 800 }}>HOY</span>}
+      </div>
+      <div
+        style={{
+          color: C.chalk,
+          fontSize: 22,
+          fontWeight: 800,
+          marginBottom: 10,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {day.calories} <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>kcal</span>
+      </div>
+      <div className="flex" style={{ gap: 8 }}>
+        <Macro label="Prot" value={day.protein} />
+        <Macro label="Grasa" value={day.fat} />
+        <Macro label="Carbs" value={day.carbs} />
+      </div>
+    </div>
+  );
+  return (
+    <Panel style={{ padding: 18, marginBottom: 16 }}>
+      <div className="flex" style={{ gap: 10, marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <Label>Metabolismo basal</Label>
+          <div style={{ color: C.chalk, fontSize: 19, fontWeight: 800, marginTop: 4 }}>{targets.bmr} kcal</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <Label>Gasto total</Label>
+          <div style={{ color: C.chalk, fontSize: 19, fontWeight: 800, marginTop: 4 }}>{targets.tdee} kcal</div>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <DayCard title="Entreno" day={targets.training} active={isTrainingToday} />
+        <DayCard title="Descanso" day={targets.rest} active={!isTrainingToday} />
+      </div>
+    </Panel>
+  );
+}
+
+function SafetyLimitNotice({ targets }) {
+  if (!targets.anyLimited) return null;
+  return (
+    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.signal}`, background: C.signalDim }}>
+      <div className="flex gap-2" style={{ alignItems: "flex-start" }}>
+        <span style={{ color: C.signal, fontSize: 15, lineHeight: 1.4, flexShrink: 0 }}>⚠</span>
+        <p style={{ color: C.chalk, fontSize: 13, lineHeight: 1.55, margin: 0 }}>
+          Ajustado al mínimo seguro: no se baja del metabolismo basal ({targets.bmr} kcal) ni de un déficit del
+          25% sobre el gasto total ({targets.tdee} kcal).
+        </p>
+      </div>
+    </Panel>
+  );
+}
+
+function AdjustmentSuggestionCard({ suggestion, onApply }) {
+  if (suggestion.code !== "increase" && suggestion.code !== "decrease") return null;
+  const up = suggestion.code === "increase";
+  return (
+    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.signal}` }}>
+      <Label style={{ marginBottom: 8 }}>Ajuste sugerido</Label>
+      <div style={{ color: C.signal, fontSize: 15, fontWeight: 800, marginBottom: 6 }}>
+        {up ? "Sube" : "Baja"} {Math.abs(suggestion.deltaKcal)} kcal/día
+      </div>
+      <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 14px" }}>
+        En las últimas {suggestion.weeks} semanas tu peso cambió a un ritmo de {suggestion.actualWeeklyKg} kg/semana
+        (esperado: {suggestion.expectedWeeklyKg} kg/semana). Es solo una sugerencia: se aplica cuando tú quieras.
+      </p>
+      <Btn variant="signal" onClick={() => onApply(suggestion.deltaKcal)}>
+        Aplicar ajuste
+      </Btn>
+    </Panel>
+  );
+}
+
+function WeightLogForm({ onLogWeight }) {
+  const [date, setDate] = useState(todayISO());
+  const [weight, setWeight] = useState("");
+  const valid = Number(weight) > 0;
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <input
+        type="date"
+        value={date}
+        max={todayISO()}
+        onChange={(e) => setDate(e.target.value)}
+        style={{
+          width: "100%",
+          background: C.panel2,
+          border: `1px solid ${C.line}`,
+          borderRadius: 11,
+          padding: "12px 14px",
+          color: C.chalk,
+          fontSize: 16,
+          outline: "none",
+          boxSizing: "border-box",
+          fontFamily: FONT,
+          marginBottom: 10,
+        }}
+      />
+      <div className="flex gap-2">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Stepper value={weight} onChange={setWeight} step={0.1} decimals={1} />
+        </div>
+        <Btn
+          variant="signal"
+          disabled={!valid}
+          onClick={() => {
+            onLogWeight(Number(weight), date);
+            setWeight("");
+          }}
+          style={{ width: 96, flexShrink: 0, padding: "0 4px" }}
+        >
+          Guardar
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function WeightHistorySection({ weights, onDeleteWeight }) {
+  const avgData = useMemo(() => movingAverage7(weights).slice(-30), [weights]);
+  return (
+    <div>
+      <div
+        style={{
+          background: C.panel,
+          border: `1px solid ${C.line}`,
+          borderRadius: 14,
+          padding: "14px 6px 6px",
+          marginBottom: 14,
+        }}
+      >
+        {avgData.length >= 2 ? (
+          <Chart data={avgData} metric="weight" />
+        ) : (
+          <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "24px 6px" }}>
+            Registra un par de días más para ver la gráfica (media móvil de 7 días).
+          </div>
+        )}
+      </div>
+      {!weights.length && (
+        <div style={{ color: C.muted, fontSize: 14, textAlign: "center", padding: "10px 0" }}>
+          Aún no hay pesos registrados.
+        </div>
+      )}
+      {weights.slice(0, 10).map((w) => (
+        <div
+          key={w.date}
+          className="flex items-center justify-between"
+          style={{ padding: "11px 2px", borderBottom: `1px solid ${C.line}` }}
+        >
+          <span style={{ color: C.dim, fontSize: 12, fontVariantNumeric: "tabular-nums" }}>{fmtDate(w.date)}</span>
+          <span style={{ color: C.chalk, fontSize: 15, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+            {w.weight} kg
+          </span>
+          <button
+            onClick={() => onDeleteWeight(w.date)}
+            aria-label={`Borrar peso del ${fmtDate(w.date)}`}
+            style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", padding: 4, fontSize: 13 }}
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DietaView({ nutrition, schedule, onSaveProfile, onLogWeight, onDeleteWeight, onApplyAdjustment }) {
+  const [editing, setEditing] = useState(false);
+  const { profile, weights, adjustment } = nutrition;
+  const targets = profile ? computeNutritionTargets(profile, adjustment) : null;
+  const isTrainingToday = !!dayIdFor(todayISO(), schedule);
+  const suggestion = profile ? getCalorieAdjustmentSuggestion(profile, weights, adjustment) : null;
+
+  return (
+    <div style={{ padding: "26px 18px 30px", paddingTop: "calc(26px + env(safe-area-inset-top, 0px))" }}>
+      <Label>Dieta</Label>
+      <h1 style={{ fontSize: 28, fontWeight: 800, color: C.chalk, margin: "6px 0 22px", letterSpacing: "-0.03em" }}>
+        Calorías y peso
+      </h1>
+
+      {!profile || editing ? (
+        <Panel style={{ padding: 18, marginBottom: 16 }}>
+          <Label style={{ marginBottom: 12 }}>{profile ? "Editar datos" : "Tus datos"}</Label>
+          <NutritionForm
+            initial={profile}
+            onCancel={() => setEditing(false)}
+            onSave={(data) => {
+              onSaveProfile(data);
+              setEditing(false);
+            }}
+          />
+        </Panel>
+      ) : (
+        <>
+          <Panel style={{ padding: 16, marginBottom: 16 }}>
+            <div className="flex items-center justify-between">
+              <div style={{ minWidth: 0 }}>
+                <Label>
+                  {ACTIVITY_LABELS[profile.activity]} · {GOAL_LABELS[profile.goal]}
+                </Label>
+                <div style={{ color: C.chalk, fontSize: 14, fontWeight: 600, marginTop: 4 }}>
+                  {profile.sex === "m" ? "Hombre" : "Mujer"} · {profile.age} años · {profile.heightCm} cm ·{" "}
+                  {profile.weightKg} kg
+                </div>
+              </div>
+              <button
+                onClick={() => setEditing(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: C.signal,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: FONT,
+                  flexShrink: 0,
+                }}
+              >
+                Editar
+              </button>
+            </div>
+          </Panel>
+
+          <NutritionResultCard targets={targets} isTrainingToday={isTrainingToday} />
+          <SafetyLimitNotice targets={targets} />
+          {suggestion && <AdjustmentSuggestionCard suggestion={suggestion} onApply={onApplyAdjustment} />}
+        </>
+      )}
+
+      <Label style={{ marginBottom: 12 }}>Seguimiento de peso</Label>
+      <WeightLogForm onLogWeight={onLogWeight} />
+      <WeightHistorySection weights={weights} onDeleteWeight={onDeleteWeight} />
+    </div>
+  );
+}
+
+/* ============================================================================
    19. APP
    ========================================================================== */
 export default function App() {
@@ -4569,16 +5120,18 @@ export default function App() {
   const [sheet, setSheet] = useState(null);
   const [swaps, setSwaps] = useState({});
   const [customExercises, setCustomExercises] = useState({});
+  const [nutrition, setNutrition] = useState(NUTRITION_DEFAULT);
 
   useEffect(() => {
     (async () => {
-      const [l, cfg, ses, md, sw, cex] = await Promise.all([
+      const [l, cfg, ses, md, sw, cex, nut] = await Promise.all([
         loadKey(K_LOG, {}),
         loadKey(K_CFG, {}),
         loadKey(K_SESSION, null),
         loadKey(K_MEDIA, {}),
         loadKey(K_SWAPS, {}),
         loadKey(K_EXERCISES, {}),
+        loadKey(K_NUTRITION, NUTRITION_DEFAULT),
       ]);
       setLog(l || {});
       setMedia(md || {});
@@ -4593,6 +5146,7 @@ export default function App() {
       if (ses) setSession(ses);
       setSwaps(sw || {});
       setCustomExercises(cex || {});
+      setNutrition(nut || NUTRITION_DEFAULT);
       setReady(true);
     })();
   }, []);
@@ -4707,6 +5261,48 @@ export default function App() {
     });
   }, []);
 
+  const logWeight = useCallback((weight, dateISO) => {
+    setNutrition((prev) => {
+      const next = { ...prev, weights: upsertWeightEntry(prev.weights, dateISO, weight) };
+      saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
+  const deleteWeight = useCallback((dateISO) => {
+    setNutrition((prev) => {
+      const next = { ...prev, weights: prev.weights.filter((w) => w.date !== dateISO) };
+      saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
+  const saveNutritionProfile = useCallback((data) => {
+    setNutrition((prev) => {
+      const goalChanged = prev.profile && prev.profile.goal !== data.goal;
+      const profile = { ...data, updatedAt: todayISO() };
+      const next = {
+        ...prev,
+        profile,
+        weights: upsertWeightEntry(prev.weights, todayISO(), data.weightKg),
+        adjustment: goalChanged ? null : prev.adjustment,
+      };
+      saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
+  const applyNutritionAdjustment = useCallback((deltaKcal) => {
+    setNutrition((prev) => {
+      const next = {
+        ...prev,
+        adjustment: { amount: (prev.adjustment?.amount || 0) + deltaKcal, appliedAt: todayISO() },
+      };
+      saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
   const saveSet = useCallback((slot, sets, dateISO) => {
     const date = dateISO || todayISO();
     const clean = sets
@@ -4785,6 +5381,24 @@ export default function App() {
         <path d="M4 9v6M7 6.5v11M17 6.5v11M20 9v6M7 12h10" stroke={a} strokeWidth="2.2" strokeLinecap="round" />
       </svg>
     ),
+    dieta: (a) => (
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M6 2.5v6M8.5 2.5v6M6 8.5c0 1.5 1 2.3 2.5 2.3s2.5-.8 2.5-2.3M8.5 10.8V21.5"
+          stroke={a}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M16.5 2.5c-1.4 0-2.3 1.8-2.3 4.3 0 2 .8 3.6 2.3 4v10.7"
+          stroke={a}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
     progreso: (a) => (
       <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
         <path d="M4 20V14M9.3 20V9M14.7 20V11.5M20 20V4" stroke={a} strokeWidth="2.4" strokeLinecap="round" />
@@ -4800,6 +5414,7 @@ export default function App() {
   const nav = [
     ["inicio", "Inicio"],
     ["rutina", "Rutina"],
+    ["dieta", "Dieta"],
     ["progreso", "Progreso"],
     ["perfil", "Perfil"],
   ];
@@ -4861,6 +5476,16 @@ export default function App() {
                 onCreateExercise={createExercise}
                 onUpdateExercise={updateExercise}
                 onDeleteExercise={deleteExercise}
+              />
+            )}
+            {view === "dieta" && (
+              <DietaView
+                nutrition={nutrition}
+                schedule={schedule}
+                onSaveProfile={saveNutritionProfile}
+                onLogWeight={logWeight}
+                onDeleteWeight={deleteWeight}
+                onApplyAdjustment={applyNutritionAdjustment}
               />
             )}
             {view === "progreso" && (
