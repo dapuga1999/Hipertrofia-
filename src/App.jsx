@@ -18,6 +18,7 @@ const C = {
   signalDim: "#0C2A4D",
   signalSoft: "#1B4B7A",
   ok: "#30D158",
+  muscle: "#FF453A", // solo para el resaltado de grupo muscular en las siluetas del selector
 };
 
 const FONT =
@@ -3902,6 +3903,122 @@ function ExerciseForm({ initial, onCancel, onSave }) {
   );
 }
 
+/* --- SILUETAS DE FILTRO POR GRUPO MUSCULAR -----------------------------------
+   SVG propio, sin dependencias. Cuerpo simplificado a bloques (cabeza + torso +
+   2 brazos + 2 piernas): a 44×64 no aporta nada intentar más detalle, solo hay
+   que reconocer de un vistazo qué zona es. Espalda/Isquiotibiales/Glúteo usan
+   la vista trasera (línea de columna); el resto, la delantera. Bíceps/Tríceps
+   comparten brazo delantero: como una silueta plana no puede distinguir delante
+   de detrás del mismo brazo, se separan por la mitad interior/exterior del
+   brazo en vez de por vista — no es anatómicamente exacto, pero junto con la
+   etiqueta debajo basta para identificar la zona. */
+const BODY_GROUPS = [
+  "Pecho",
+  "Espalda",
+  "Hombro",
+  "Bíceps",
+  "Tríceps",
+  "Cuádriceps",
+  "Isquiotibiales",
+  "Glúteo",
+  "Gemelo",
+  "Core",
+];
+const BODY_GROUP_BACK = { Espalda: true, Isquiotibiales: true, Glúteo: true };
+const BODY_HIGHLIGHTS = {
+  Pecho: [{ x: 14, y: 14, w: 16, h: 9, rx: 4 }],
+  Core: [{ x: 15, y: 24, w: 14, h: 8, rx: 3 }],
+  Hombro: [
+    { cx: 8, cy: 15, r: 4.5 },
+    { cx: 36, cy: 15, r: 4.5 },
+  ],
+  /* Bíceps no usa este mapa: se dibuja con el brazo flexionado (ver
+     BodySilhouette), la pose clásica de "bíceps" que se reconoce sin
+     necesidad de comparar posiciones sutiles dentro del brazo. */
+  Tríceps: [
+    { x: 4, y: 15, w: 7, h: 11, rx: 3 },
+    { x: 33, y: 15, w: 7, h: 11, rx: 3 },
+  ],
+  Cuádriceps: [
+    { x: 13, y: 35, w: 8, h: 13, rx: 3 },
+    { x: 23, y: 35, w: 8, h: 13, rx: 3 },
+  ],
+  Gemelo: [
+    { x: 13, y: 49, w: 8, h: 12, rx: 3 },
+    { x: 23, y: 49, w: 8, h: 12, rx: 3 },
+  ],
+  Espalda: [{ x: 13, y: 14, w: 18, h: 18, rx: 5 }],
+  Isquiotibiales: [
+    { x: 13, y: 35, w: 8, h: 13, rx: 3 },
+    { x: 23, y: 35, w: 8, h: 13, rx: 3 },
+  ],
+  Glúteo: [{ x: 13, y: 31, w: 18, h: 7, rx: 3 }],
+};
+
+function BodySilhouette({ group, active, onClick }) {
+  const back = !!BODY_GROUP_BACK[group];
+  const flexed = group === "Bíceps";
+  const shapes = flexed ? [] : BODY_HIGHLIGHTS[group] || [];
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      aria-label={`Filtrar por ${group}`}
+      style={{
+        flexShrink: 0,
+        width: 50,
+        background: "none",
+        border: `1.5px solid ${active ? C.signal : "transparent"}`,
+        borderRadius: 12,
+        padding: "4px 3px 5px",
+        cursor: "pointer",
+        fontFamily: FONT,
+      }}
+    >
+      <svg width="40" height="58" viewBox="0 0 44 64">
+        <circle cx="22" cy="7" r="5" fill={C.line2} />
+        <rect x="13" y="13" width="18" height="20" rx="6" fill={C.line2} />
+        {back && <line x1="22" y1="15" x2="22" y2="31" stroke={C.ink} strokeWidth="0.6" opacity="0.5" />}
+        {flexed ? (
+          <>
+            {/* brazo flexionado: bíceps (tramo hombro-codo) en rojo, antebrazo doblado hacia el hombro en gris */}
+            <line x1="9" y1="15" x2="4" y2="27" stroke={C.muscle} strokeWidth="6" strokeLinecap="round" />
+            <line x1="4" y1="27" x2="10" y2="17" stroke={C.line2} strokeWidth="5" strokeLinecap="round" />
+            <line x1="35" y1="15" x2="40" y2="27" stroke={C.muscle} strokeWidth="6" strokeLinecap="round" />
+            <line x1="40" y1="27" x2="34" y2="17" stroke={C.line2} strokeWidth="5" strokeLinecap="round" />
+          </>
+        ) : (
+          <>
+            <rect x="4" y="14" width="7" height="22" rx="3.5" fill={C.line2} />
+            <rect x="33" y="14" width="7" height="22" rx="3.5" fill={C.line2} />
+          </>
+        )}
+        <rect x="13" y="34" width="8" height="28" rx="3.5" fill={C.line2} />
+        <rect x="23" y="34" width="8" height="28" rx="3.5" fill={C.line2} />
+        {shapes.map((s, i) =>
+          s.r != null ? (
+            <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill={C.muscle} />
+          ) : (
+            <rect key={i} x={s.x} y={s.y} width={s.w} height={s.h} rx={s.rx} fill={C.muscle} />
+          )
+        )}
+      </svg>
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 600,
+          color: active ? C.chalk : C.dim,
+          marginTop: 3,
+          whiteSpace: "nowrap",
+          textAlign: "center",
+        }}
+      >
+        {group}
+      </div>
+    </button>
+  );
+}
+
 function ExerciseSwapSheet({
   currentExId,
   originalExId,
@@ -3915,20 +4032,23 @@ function ExerciseSwapSheet({
   onDeleteExercise,
 }) {
   const [q, setQ] = useState("");
+  const [activeGroup, setActiveGroup] = useState(null);
   const [mode, setMode] = useState("list"); // "list" | "create" | "edit"
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   const query = q.trim().toLowerCase();
   const allGroups = buildExerciseGroups(customExercises);
-  const groups = query
-    ? allGroups.map((g) => ({
-        ...g,
-        items: g.items.filter(
-          (e) => e.name.toLowerCase().includes(query) || e.muscleGroup.toLowerCase().includes(query)
-        ),
-      })).filter((g) => g.items.length)
-    : allGroups;
+  const groups = allGroups
+    .map((g) => ({
+      ...g,
+      items: g.items.filter(
+        (e) =>
+          (!activeGroup || e.muscleGroup === activeGroup) &&
+          (!query || e.name.toLowerCase().includes(query) || e.muscleGroup.toLowerCase().includes(query))
+      ),
+    }))
+    .filter((g) => g.items.length);
 
   const deleteTarget = deleteId ? getExercise(deleteId, customExercises) : null;
   const deleteHistoryCount = deleteId ? (log?.[deleteId] || []).length : 0;
@@ -4003,6 +4123,28 @@ function ExerciseSwapSheet({
 
         {mode === "list" && (
           <>
+            <div
+              className="flex"
+              style={{
+                gap: 10,
+                padding: "0 18px 14px",
+                overflowX: "auto",
+                flexShrink: 0,
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              {BODY_GROUPS.filter((g) =>
+                Object.values(mergeExercises(customExercises)).some((e) => e.muscleGroup === g)
+              ).map((g) => (
+                <BodySilhouette
+                  key={g}
+                  group={g}
+                  active={activeGroup === g}
+                  onClick={() => setActiveGroup((prev) => (prev === g ? null : g))}
+                />
+              ))}
+            </div>
+
             <div style={{ padding: "0 18px 14px", flexShrink: 0 }}>
               <input
                 autoFocus
