@@ -1941,7 +1941,7 @@ const K_MEDIA = "hipertrofia:media:v1";
 const K_SWAPS = "hipertrofia:swaps:v1";
 const K_EXERCISES = "hipertrofia:exercises:v1";
 const K_NUTRITION = "hipertrofia:nutrition:v1";
-const NUTRITION_DEFAULT = { profile: null, weights: [], adjustment: null };
+const NUTRITION_DEFAULT = { profile: null, weights: [], adjustment: null, mealCount: 4 };
 
 async function loadKey(key, fallback) {
   try {
@@ -2165,6 +2165,31 @@ function getCalorieAdjustmentSuggestion(profile, weights, adjustment) {
     weeks: Math.round(weeks * 10) / 10,
     deltaKcal,
   };
+}
+
+/* Reparte gramos enteros entre n comidas sin perder nada por el redondeo:
+   el resto (0..n-1 g) se distribuye de uno en uno entre las primeras
+   comidas, así que sumar todas las partes siempre da el total exacto. */
+function splitGrams(totalG, n) {
+  const base = Math.floor(totalG / n);
+  const remainder = totalG - base * n;
+  return Array.from({ length: n }, (_, i) => base + (i < remainder ? 1 : 0));
+}
+
+/* Reparto de un día (entreno o descanso, tal como los devuelve
+   computeNutritionTargets) en n comidas. Las calorías de cada comida se
+   calculan a partir de sus propios macros (no dividiendo las kcal del día
+   aparte), para que macros y calorías mostradas en cada comida cuadren
+   entre sí. */
+function splitIntoMeals(day, mealCount) {
+  const proteinParts = splitGrams(day.protein, mealCount);
+  const fatParts = splitGrams(day.fat, mealCount);
+  const carbParts = splitGrams(day.carbs, mealCount);
+  return proteinParts.map((protein, i) => {
+    const fat = fatParts[i];
+    const carbs = carbParts[i];
+    return { protein, fat, carbs, calories: Math.round(protein * 4 + fat * 9 + carbs * 4) };
+  });
 }
 
 /* ============================================================================
@@ -5034,9 +5059,100 @@ function WeightHistorySection({ weights, onDeleteWeight }) {
   );
 }
 
-function DietaView({ nutrition, schedule, onSaveProfile, onLogWeight, onDeleteWeight, onApplyAdjustment }) {
+function MealSplitCard({ targets, isTrainingToday, mealCount, onSetMealCount }) {
+  const [dayType, setDayType] = useState(isTrainingToday ? "training" : "rest");
+  const day = targets[dayType];
+  const meals = useMemo(() => splitIntoMeals(day, mealCount), [day, mealCount]);
+
+  const Pill = ({ active, onClick, children }) => (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: "9px 6px",
+        borderRadius: 10,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer",
+        background: active ? C.panel2 : "transparent",
+        color: active ? C.chalk : C.dim,
+        border: `1px solid ${active ? C.line2 : C.line}`,
+        fontFamily: FONT,
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <Panel style={{ padding: 16, marginBottom: 16 }}>
+      <Label style={{ marginBottom: 10 }}>Reparto por comidas</Label>
+
+      <div className="flex gap-2" style={{ marginBottom: 12 }}>
+        <Pill active={dayType === "training"} onClick={() => setDayType("training")}>
+          Día de entreno
+        </Pill>
+        <Pill active={dayType === "rest"} onClick={() => setDayType("rest")}>
+          Día de descanso
+        </Pill>
+      </div>
+
+      <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+        <Label style={{ marginBottom: 0 }}>Nº de comidas</Label>
+        <div className="flex gap-2">
+          {[3, 4, 5, 6].map((n) => (
+            <button
+              key={n}
+              onClick={() => onSetMealCount(n)}
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: mealCount === n ? C.signal : "transparent",
+                color: mealCount === n ? "#fff" : C.dim,
+                border: `1px solid ${mealCount === n ? C.signal : C.line}`,
+                fontFamily: FONT,
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {meals.map((m, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between"
+          style={{ padding: "11px 2px", borderBottom: i < meals.length - 1 ? `1px solid ${C.line}` : "none" }}
+        >
+          <span style={{ color: C.chalk, fontSize: 13, fontWeight: 700, width: 66, flexShrink: 0 }}>
+            Comida {i + 1}
+          </span>
+          <span style={{ color: C.chalk, fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{m.calories} kcal</span>
+          <span style={{ color: C.dim, fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
+            {m.protein}g · {m.fat}g · {m.carbs}g
+          </span>
+        </div>
+      ))}
+    </Panel>
+  );
+}
+
+function DietaView({
+  nutrition,
+  schedule,
+  onSaveProfile,
+  onLogWeight,
+  onDeleteWeight,
+  onApplyAdjustment,
+  onSetMealCount,
+}) {
   const [editing, setEditing] = useState(false);
-  const { profile, weights, adjustment } = nutrition;
+  const { profile, weights, adjustment, mealCount } = nutrition;
   const targets = profile ? computeNutritionTargets(profile, adjustment) : null;
   const isTrainingToday = !!dayIdFor(todayISO(), schedule);
   const suggestion = profile ? getCalorieAdjustmentSuggestion(profile, weights, adjustment) : null;
@@ -5093,6 +5209,12 @@ function DietaView({ nutrition, schedule, onSaveProfile, onLogWeight, onDeleteWe
 
           <NutritionResultCard targets={targets} isTrainingToday={isTrainingToday} />
           <SafetyLimitNotice targets={targets} />
+          <MealSplitCard
+            targets={targets}
+            isTrainingToday={isTrainingToday}
+            mealCount={mealCount || 4}
+            onSetMealCount={onSetMealCount}
+          />
           {suggestion && <AdjustmentSuggestionCard suggestion={suggestion} onApply={onApplyAdjustment} />}
         </>
       )}
@@ -5303,6 +5425,14 @@ export default function App() {
     });
   }, []);
 
+  const setMealCount = useCallback((mealCount) => {
+    setNutrition((prev) => {
+      const next = { ...prev, mealCount };
+      saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
   const saveSet = useCallback((slot, sets, dateISO) => {
     const date = dateISO || todayISO();
     const clean = sets
@@ -5486,6 +5616,7 @@ export default function App() {
                 onLogWeight={logWeight}
                 onDeleteWeight={deleteWeight}
                 onApplyAdjustment={applyNutritionAdjustment}
+                onSetMealCount={setMealCount}
               />
             )}
             {view === "progreso" && (
