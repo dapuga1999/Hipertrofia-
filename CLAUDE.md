@@ -113,6 +113,41 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
 - Emoji por alimento vía `emojiForFood`: coincidencia de palabras clave sobre
   `categories_tags` + nombre, con `🍽️` como último recurso.
 
+## Escáner de código de barras (cámara)
+
+- El botón "📷 Escanear" del selector de alimentos (`FoodPickerSheet`) abre
+  `BarcodeScanner`, que usa `@zxing/browser` (paquete en `package.json`) en
+  vez del `BarcodeDetector` nativo del navegador porque Safari/iOS —el
+  navegador real de esta app— no lo implementa.
+- `@zxing/browser` se carga con `import("@zxing/browser")` dinámico dentro
+  del `useEffect` de `BarcodeScanner`, no en el import estático de arriba del
+  archivo: así Vite lo separa en su propio chunk y ese ~450 KB solo se
+  descarga si el usuario llega a abrir el escáner, no en la carga inicial.
+- Pide la cámara con `facingMode: "environment"` (no `exact`): en el móvil
+  pide la trasera, pero si algún día se prueba en un portátil con solo
+  webcam frontal no revienta, cae a la que haya.
+- **Bug real encontrado y corregido probando con cámara falsa de Chromium**
+  (`--use-fake-device-for-media-stream` + un vídeo con un EAN-13 real
+  generado con `bwip-js`): el callback de `decodeFromConstraints` puede
+  dispararse — y detectar el código — *antes* de que la promesa que lo
+  arranca resuelva y asigne la variable donde se guarda `controls`. Si el
+  callback hace `c.stop()` sobre esa variable externa, salta un
+  `ReferenceError` de TDZ que aborta la llamada a `onDetect` en silencio (el
+  error lo traga el bucle interno de zxing, no llega a consola): la cámara
+  se queda encendida y la app parece congelada en "Abriendo la cámara…" para
+  siempre, aunque la lectura fue correcta. Con una lectura instantánea (como
+  la de la cámara falsa, siempre enfocada y sin motion blur) esto pasa
+  siempre; en un móvil real es más raro pero no imposible. Arreglo: usar el
+  tercer argumento que el propio callback recibe (`controls`, distinto de la
+  variable externa) para pararlo — es justo para eso que la API de zxing lo
+  pasa. No repetir el patrón `const c = await decodeFromConstraints(...,
+  callback-que-referencia-c)` en ningún sitio nuevo que toque esta librería.
+- Al detectar un código, `BarcodeScanner` no dibuja su propio resultado: hace
+  `onDetect(code)` → `FoodPickerSheet` mete el código en el mismo `q` que ya
+  usa la búsqueda por texto, y el `useEffect` existente que ya distingue
+  código de barras vs. texto (`looksLikeBarcode`) hace el resto. No hay
+  ruta de resultados duplicada para el escáner.
+
 ## Reglas de la rutina — NO MODIFICAR
 
 Están en la constante `DAYS`. Son de un entrenador, no negociables:

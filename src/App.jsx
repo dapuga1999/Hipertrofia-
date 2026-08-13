@@ -5684,6 +5684,110 @@ function CustomFoodForm({ onCancel, onSave }) {
   );
 }
 
+const hasCamera = () =>
+  typeof navigator !== "undefined" && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+/* Cámara + lectura de código de barras con @zxing/browser, cargado con
+   import() dinámico para no meter la librería en el bundle principal (solo
+   hace falta si el usuario llega a abrir el escáner). facingMode:
+   "environment" (no exact) para pedir la cámara trasera en el móvil sin
+   reventar en portátiles que solo tienen webcam frontal. */
+function BarcodeScanner({ onDetect, onCancel }) {
+  const videoRef = useRef(null);
+  const [status, setStatus] = useState("starting"); // starting | scanning | denied | error
+
+  useEffect(() => {
+    let controls = null;
+    let done = false;
+    (async () => {
+      try {
+        const { BrowserMultiFormatReader } = await import("@zxing/browser");
+        const reader = new BrowserMultiFormatReader();
+        // El callback recibe sus propios `controls` (3er argumento) porque
+        // puede dispararse antes de que esta promesa resuelva y asigne la
+        // variable de fuera — usar esa closure en vez del `c` externo evita
+        // un ReferenceError (TDZ) que abortaba onDetect en silencio cuando
+        // la detección era casi instantánea.
+        const c = await reader.decodeFromConstraints(
+          { video: { facingMode: "environment" } },
+          videoRef.current,
+          (result, _err, ctl) => {
+            if (result && !done) {
+              done = true;
+              ctl.stop();
+              onDetect(result.getText());
+            }
+          }
+        );
+        if (done) {
+          c.stop();
+          return;
+        }
+        controls = c;
+        setStatus("scanning");
+      } catch (e) {
+        if (!done) setStatus(e && e.name === "NotAllowedError" ? "denied" : "error");
+      }
+    })();
+    return () => {
+      done = true;
+      controls?.stop();
+    };
+  }, [onDetect]);
+
+  return (
+    <div style={{ padding: "4px 18px 18px" }}>
+      <div
+        style={{
+          position: "relative",
+          borderRadius: 16,
+          overflow: "hidden",
+          background: C.panel2,
+          aspectRatio: "3 / 4",
+          marginBottom: 14,
+        }}
+      >
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+        {status === "scanning" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: "18% 10%",
+              border: `2px solid ${C.dietAccent}`,
+              borderRadius: 14,
+              boxShadow: "0 0 0 999px rgba(0,0,0,0.35)",
+            }}
+          />
+        )}
+        {(status === "starting" || status === "denied" || status === "error") && (
+          <div
+            className="flex items-center justify-center"
+            style={{ position: "absolute", inset: 0, padding: 20, textAlign: "center" }}
+          >
+            <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+              {status === "starting" && "Abriendo la cámara…"}
+              {status === "denied" &&
+                "Permiso de cámara denegado. Puedes activarlo en Ajustes del teléfono, o escribir el código a mano."}
+              {status === "error" && "No se pudo acceder a la cámara. Puedes escribir el código a mano."}
+            </p>
+          </div>
+        )}
+      </div>
+      <p style={{ color: C.muted, fontSize: 13, textAlign: "center", margin: "0 0 16px" }}>
+        Apunta al código de barras del producto.
+      </p>
+      <Btn variant="quiet" onClick={onCancel}>
+        Cancelar
+      </Btn>
+    </div>
+  );
+}
+
 function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState([]);
@@ -5691,6 +5795,7 @@ function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
   const [error, setError] = useState(null); // "offline" | "error" | null
   const [selectedFood, setSelectedFood] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     const query = q.trim();
@@ -5720,13 +5825,23 @@ function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
     (b.lastUsed || "").localeCompare(a.lastUsed || "")
   );
 
-  const title = creating ? "Alimento propio" : selectedFood ? "Cantidad" : `Añadir a ${meal}`;
+  const title = creating
+    ? "Alimento propio"
+    : selectedFood
+    ? "Cantidad"
+    : scanning
+    ? "Escanear código de barras"
+    : `Añadir a ${meal}`;
 
   const handlePick = (food) => setSelectedFood(food);
   const handleConfirmQuantity = (entry) => {
     onSaveRecent(selectedFood);
     onAdd(entry);
   };
+  const handleBarcodeDetected = useCallback((code) => {
+    setScanning(false);
+    setQ(code);
+  }, []);
 
   return (
     <div
@@ -5759,11 +5874,12 @@ function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
 
         <div className="flex items-center justify-between" style={{ padding: "8px 18px 10px", flexShrink: 0 }}>
           <Label>{title}</Label>
-          {(selectedFood || creating) && (
+          {(selectedFood || creating || scanning) && (
             <button
               onClick={() => {
                 setSelectedFood(null);
                 setCreating(false);
+                setScanning(false);
               }}
               style={{
                 background: "none",
@@ -5791,6 +5907,8 @@ function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
               handlePick(f);
             }}
           />
+        ) : scanning ? (
+          <BarcodeScanner onDetect={handleBarcodeDetected} onCancel={() => setScanning(false)} />
         ) : (
           <>
             <div style={{ padding: "0 18px 12px", flexShrink: 0 }}>
@@ -5813,23 +5931,46 @@ function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
                   marginBottom: 10,
                 }}
               />
-              <button
-                onClick={() => setCreating(true)}
-                className="flex items-center justify-center w-full"
-                style={{
-                  background: "transparent",
-                  border: `1px dashed ${C.line2}`,
-                  borderRadius: 11,
-                  padding: "11px 14px",
-                  color: C.chalk,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  fontFamily: FONT,
-                }}
-              >
-                + Crear alimento propio
-              </button>
+              <div className="flex gap-2" style={{ width: "100%" }}>
+                {hasCamera() && (
+                  <button
+                    onClick={() => setScanning(true)}
+                    className="flex items-center justify-center"
+                    style={{
+                      flex: 1,
+                      background: "transparent",
+                      border: `1px dashed ${C.line2}`,
+                      borderRadius: 11,
+                      padding: "11px 14px",
+                      color: C.chalk,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontFamily: FONT,
+                    }}
+                  >
+                    📷 Escanear
+                  </button>
+                )}
+                <button
+                  onClick={() => setCreating(true)}
+                  className="flex items-center justify-center"
+                  style={{
+                    flex: 1,
+                    background: "transparent",
+                    border: `1px dashed ${C.line2}`,
+                    borderRadius: 11,
+                    padding: "11px 14px",
+                    color: C.chalk,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: FONT,
+                  }}
+                >
+                  + Crear alimento propio
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowY: "auto", padding: "0 18px 8px" }}>
