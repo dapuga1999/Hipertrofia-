@@ -5701,15 +5701,35 @@ function BarcodeScanner({ onDetect, onCancel }) {
     let done = false;
     (async () => {
       try {
-        const { BrowserMultiFormatReader } = await import("@zxing/browser");
-        const reader = new BrowserMultiFormatReader();
+        const [{ BrowserMultiFormatReader }, { DecodeHintType, BarcodeFormat }] = await Promise.all([
+          import("@zxing/browser"),
+          import("@zxing/library"),
+        ]);
+        // Restringir a formatos de código de barras de producto: evita que
+        // el lector pierda tiempo cada frame probando QR/DataMatrix/Aztec/
+        // PDF417 (que nunca van a matchear un código de barras de comida) y
+        // así decodifica más frames por segundo en un móvil real. TRY_HARDER
+        // activa el modo de detección más agresivo de zxing (más CPU, pero
+        // aquí es un escaneo puntual, no continuo en segundo plano).
+        const hints = new Map();
+        hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.UPC_A,
+          BarcodeFormat.UPC_E,
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.CODE_39,
+          BarcodeFormat.ITF,
+        ]);
+        hints.set(DecodeHintType.TRY_HARDER, true);
+        const reader = new BrowserMultiFormatReader(hints);
         // El callback recibe sus propios `controls` (3er argumento) porque
         // puede dispararse antes de que esta promesa resuelva y asigne la
         // variable de fuera — usar esa closure en vez del `c` externo evita
         // un ReferenceError (TDZ) que abortaba onDetect en silencio cuando
         // la detección era casi instantánea.
         const c = await reader.decodeFromConstraints(
-          { video: { facingMode: "environment" } },
+          { video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } },
           videoRef.current,
           (result, _err, ctl) => {
             if (result && !done) {

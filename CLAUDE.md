@@ -125,7 +125,19 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
   descarga si el usuario llega a abrir el escáner, no en la carga inicial.
 - Pide la cámara con `facingMode: "environment"` (no `exact`): en el móvil
   pide la trasera, pero si algún día se prueba en un portátil con solo
-  webcam frontal no revienta, cae a la que haya.
+  webcam frontal no revienta, cae a la que haya. También pide
+  `width/height: { ideal: 1280x720 }` — sin esto algunos móviles eligen una
+  resolución por defecto insuficiente para leer bien un código de barras
+  real (con cámara falsa de escritorio no se nota, ahí siempre sale nítido).
+- `BrowserMultiFormatReader` se construye con `hints` (`DecodeHintType` de
+  `@zxing/library`, importado también con `import()` dinámico junto a
+  `@zxing/browser`): `POSSIBLE_FORMATS` restringido a formatos de código de
+  barras de producto (EAN-13/8, UPC-A/E, Code128/39, ITF) para no perder
+  frames probando QR/DataMatrix/Aztec/PDF417, que nunca van a matchear un
+  producto — y `TRY_HARDER: true`, que hace la detección bastante más
+  robusta en condiciones reales (foco imperfecto, algo de temblor de mano) a
+  cambio de más CPU por frame; aceptable porque es un escaneo puntual, no
+  algo corriendo en segundo plano todo el rato.
 - **Bug real encontrado y corregido probando con cámara falsa de Chromium**
   (`--use-fake-device-for-media-stream` + un vídeo con un EAN-13 real
   generado con `bwip-js`): el callback de `decodeFromConstraints` puede
