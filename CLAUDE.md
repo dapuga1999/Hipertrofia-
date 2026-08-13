@@ -7,7 +7,7 @@ iPhone, instalada en la pantalla de inicio. Todo lo demás es secundario.
 
 Proyecto Vite real (no un HTML autocontenido):
 
-- `src/App.jsx` — fuente única. Un solo archivo, ~5.600 líneas, React sin router.
+- `src/App.jsx` — fuente única. Un solo archivo, ~6.750 líneas, React sin router.
 - `index.html` — solo el entry point de Vite (`<div id="root">` + `<script
   type="module" src="/src/main.jsx">`). El bundle real lo genera
   `npm run build` en `dist/`, que se despliega solo (ver "Cómo desplegar").
@@ -20,15 +20,19 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
 - React 18 + Vite. **Sin Tailwind**: los estilos son inline con un objeto de
   paleta `C`. Hay un puñado de utilidades CSS (`flex`, `gap-2`…) definidas a
   mano en `index.html`. No introducir Tailwind sin instalarlo de verdad.
-- **Sin backend**. Todo en `localStorage` a través de `loadKey` / `saveKey`.
-  Toda la persistencia pasa por esas dos funciones: es el único punto a tocar
-  si algún día se migra a Supabase.
+- **Sin backend propio**. Todo en `localStorage` a través de `loadKey` /
+  `saveKey`. Toda la persistencia pasa por esas dos funciones: es el único
+  punto a tocar si algún día se migra a Supabase. Única excepción: el
+  registro de comidas llama directamente a la API pública de Open Food
+  Facts desde el cliente (ver más abajo) — es la única función de la app que
+  hace peticiones de red.
 - Claves: `hipertrofia:log:v1` (historial), `hipertrofia:config:v1` (vídeos y
   calendario), `hipertrofia:session:v1` (sesión en curso), `hipertrofia:media:v1`
   (imágenes/GIFs en base64), `hipertrofia:swaps:v1` (sustituciones de ejercicio
   por slot, ver más abajo), `hipertrofia:exercises:v1` (ejercicios creados por
-  el usuario), `hipertrofia:nutrition:v1` (calculadora nutricional + peso, ver
-  más abajo).
+  el usuario), `hipertrofia:nutrition:v1` (calculadora nutricional + peso),
+  `hipertrofia:food:v1` (registro de comidas por fecha), `hipertrofia:foods:v1`
+  (alimentos recientes/propios).
 - Límite de ~5 MB en localStorage. Los GIFs se guardan en base64, así que
   cuidado al añadir funciones que escriban mucho.
 
@@ -81,6 +85,34 @@ Publicado en `https://dapuga1999.github.io/Hipertrofia-`.
   cambia de objetivo (`saveNutritionProfile`), porque un ajuste calibrado
   para "definición" no tiene sentido arrastrado a "volumen".
 
+## Registro de comidas y Open Food Facts
+
+- Búsqueda de alimentos vía `searchOffFoods`/`lookupOffBarcode`, que llaman a
+  `world.openfoodfacts.org` — **no** a `search.openfoodfacts.org` (el
+  servicio "search-a-licious", más nuevo, no manda cabecera
+  `Access-Control-Allow-Origin` y el navegador bloquea la respuesta por CORS;
+  se comprobó en un navegador real, no solo con `curl` — `curl` no aplica
+  CORS y hace parecer que funciona cuando en realidad no lo haría desde la
+  app). El buscador de texto usa el endpoint legacy
+  `world.openfoodfacts.org/cgi/search.pl` (con `search_terms=`), que sí tiene
+  CORS y además da resultados más relevantes que search-a-licious para
+  marcas españolas. El código de barras usa
+  `world.openfoodfacts.org/api/v2/product/<code>.json`.
+- Esa API pública, sin clave, devuelve de vez en cuando un fallo de red suelto
+  bajo carga (probablemente un desafío anti-bot que no lleva CORS). `fetchOffWithRetry`
+  reintenta hasta 2 veces con backoff (800ms/1600ms) antes de rendirse — es
+  intencional, no lo quites pensando que es ruido.
+- `normalizeOffProduct` descarta (devuelve `null`) cualquier producto sin
+  kcal/proteína/hidratos/grasa numéricos — muchos productos de Open Food
+  Facts tienen datos incompletos.
+- `prioritizeSpain` reordena los resultados (España primero) sin filtrar: un
+  filtro estricto por país puede dejar búsquedas legítimas sin resultados.
+- Sin conexión (`navigator.onLine === false` o el propio `fetch` falla), la
+  búsqueda lanza y el selector muestra un aviso claro; los alimentos
+  "recientes" (`hipertrofia:foods:v1`) siguen disponibles porque son locales.
+- Emoji por alimento vía `emojiForFood`: coincidencia de palabras clave sobre
+  `categories_tags` + nombre, con `🍽️` como último recurso.
+
 ## Reglas de la rutina — NO MODIFICAR
 
 Están en la constante `DAYS`. Son de un entrenador, no negociables:
@@ -112,7 +144,11 @@ No subir peso solo porque la primera serie llegue al tope.
 Móvil primero, y concretamente: móvil con las manos sudadas, entre series, con
 prisa. Áreas de toque grandes, jerarquía clara, cero adornos.
 
-- Paleta: negro/grafito + un único azul de acento (`#0A84FF`).
+- Paleta: negro/grafito + un único azul de acento (`#0A84FF`), **excepto la
+  pestaña Dieta**, que usa verde (`C.dietAccent`, `#30D158`) para diferenciar
+  nutrición de entrenamiento a propósito. `Btn` tiene variante `"diet"` y
+  `Chart` acepta un prop `color` (por defecto el azul) precisamente para
+  esto — no generalices el azul de vuelta ahí pensando que es un descuido.
 - Respetar siempre `env(safe-area-inset-top/bottom)`: en modo standalone iOS
   no hay barra de navegador y el contenido se mete bajo la hora.
 - En standalone tampoco existe el gesto de volver atrás del navegador. Hay un

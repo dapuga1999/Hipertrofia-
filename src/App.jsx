@@ -19,6 +19,8 @@ const C = {
   signalSoft: "#1B4B7A",
   ok: "#30D158",
   muscle: "#FF453A", // solo para el resaltado de grupo muscular en las siluetas del selector
+  dietAccent: "#30D158", // acento de la pestaña Dieta (verde), en vez del azul del resto de la app
+  dietAccentDim: "#0F3D22",
 };
 
 const FONT =
@@ -1943,6 +1945,8 @@ const K_SWAPS = "hipertrofia:swaps:v1";
 const K_EXERCISES = "hipertrofia:exercises:v1";
 const K_NUTRITION = "hipertrofia:nutrition:v1";
 const NUTRITION_DEFAULT = { profile: null, weights: [], adjustment: null, mealCount: 4 };
+const K_FOOD = "hipertrofia:food:v1"; // registro diario de comidas, indexado por fecha
+const K_FOODS = "hipertrofia:foods:v1"; // alimentos recientes/propios, indexados por id
 
 async function loadKey(key, fallback) {
   try {
@@ -2194,6 +2198,168 @@ function splitIntoMeals(day, mealCount) {
 }
 
 /* ============================================================================
+   5c. ALIMENTOS (OPEN FOOD FACTS)
+   ----------------------------------------------------------------------------
+   Sin backend propio: se llama directamente a la API pública de Open Food
+   Facts desde el cliente (es abierta, sin clave y sin límites estrictos para
+   uso personal). Dos endpoints:
+     - Búsqueda de texto: search-a-licious (search.openfoodfacts.org/search).
+     - Producto por código de barras: world.openfoodfacts.org/api/v2/product.
+   Muchos productos tienen datos incompletos: normalizeOffProduct() descarta
+   (devuelve null) cualquiera sin kcal/proteína/hidratos/grasa numéricos.
+   ========================================================================== */
+const MEALS = ["Desayuno", "Comida", "Merienda", "Cena"];
+
+const uid = (prefix) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+const FOOD_EMOJI_RULES = [
+  [/chicken|poultry|turkey|pollo|pavo/, "🍗"],
+  [/beef|pork|meat|carn|jam[oó]n|salchich|sausage|bacon|chorizo/, "🥩"],
+  [/fish|seafood|salmon|tuna|at[uú]n|pescado|marisco|gamba|shrimp/, "🐟"],
+  [/egg|huevo/, "🥚"],
+  [/cheese|queso/, "🧀"],
+  [/yogurt|yogur|dair|milk|leche/, "🥛"],
+  [/legume|bean|lenteja|garbanzo|jud[ií]a/, "🫘"],
+  [/nut|seed|almendra|nuez|fruto-seco|peanut/, "🥜"],
+  [/bread|pan|toast|cereal|pasta|rice|arroz|noodle/, "🍞"],
+  [/fruit|fruta|manzana|pl[aá]tano|apple|banana/, "🍎"],
+  [/vegetable|verdura|tomate|lettuce|ensalada/, "🥦"],
+  [/pizza/, "🍕"],
+  [/chocolate|candy|sweet|dulce|galleta|biscuit|cookie|pastry|cake|tarta|bollo/, "🍫"],
+  [/beverage|drink|juice|zumo|soda|refresco|water|agua|bebida/, "🥤"],
+  [/oil|aceite|butter|mantequilla/, "🧈"],
+  [/protein|supplement|bodybuilding|suplemento|prote[ií]na/, "💪"],
+];
+function emojiForFood(categoriesTags, name) {
+  const haystack = `${(categoriesTags || []).join(" ")} ${name || ""}`.toLowerCase();
+  for (const [re, emoji] of FOOD_EMOJI_RULES) {
+    if (re.test(haystack)) return emoji;
+  }
+  return "🍽️";
+}
+
+function nutrimentsAreValid(n) {
+  if (!n) return false;
+  const vals = [n["energy-kcal_100g"], n["proteins_100g"], n["carbohydrates_100g"], n["fat_100g"]];
+  return vals.every((v) => typeof v === "number" && Number.isFinite(v)) && n["energy-kcal_100g"] >= 0;
+}
+function normalizeOffProduct(p) {
+  if (!p || !nutrimentsAreValid(p.nutriments)) return null;
+  const n = p.nutriments;
+  const name = String(p.product_name || "").split("\n")[0].trim();
+  if (!name) return null;
+  const brandsRaw = Array.isArray(p.brands) ? p.brands[0] : p.brands;
+  return {
+    id: `off-${p.code}`,
+    source: "off",
+    code: p.code,
+    name,
+    brand: (brandsRaw || "").split(",")[0].trim(),
+    emoji: emojiForFood(p.categories_tags, name),
+    kcal100: Math.round(n["energy-kcal_100g"]),
+    protein100: Math.round(n["proteins_100g"] * 10) / 10,
+    carbs100: Math.round(n["carbohydrates_100g"] * 10) / 10,
+    fat100: Math.round(n["fat_100g"] * 10) / 10,
+    countries: p.countries_tags || [],
+  };
+}
+/* Prioriza (no filtra) los resultados con presencia en España, manteniendo
+   el orden de relevancia original dentro de cada grupo. */
+function prioritizeSpain(hits) {
+  const spain = [];
+  const rest = [];
+  for (const h of hits || []) {
+    (h.countries_tags || []).includes("en:spain") ? spain.push(h) : rest.push(h);
+  }
+  return [...spain, ...rest];
+}
+const looksLikeBarcode = (q) => /^\d{6,14}$/.test(q.trim());
+
+const OFF_FIELDS = "code,product_name,brands,nutriments,categories_tags,countries_tags";
+
+/* Un solo fetch con timeout, sin reintento — lo usa fetchOffWithRetry(). */
+async function fetchOffOnce(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error("http-" + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+/* world.openfoodfacts.org (a diferencia de search.openfoodfacts.org, que no
+   manda cabecera CORS y el navegador bloquea la respuesta) sí permite
+   llamadas desde el cliente, pero a veces devuelve un fallo de red suelto
+   bajo carga alta — un reintento corto lo resuelve casi siempre. */
+async function fetchOffWithRetry(url) {
+  const delays = [800, 1600];
+  let lastErr;
+  for (let i = 0; i <= delays.length; i++) {
+    try {
+      return await fetchOffOnce(url);
+    } catch (e) {
+      lastErr = e;
+      if (e.name === "AbortError" || i === delays.length) break;
+      await new Promise((r) => setTimeout(r, delays[i]));
+    }
+  }
+  throw lastErr;
+}
+
+async function searchOffFoods(query) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("offline");
+  }
+  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
+    query
+  )}&search_simple=1&action=process&json=1&page_size=24&fields=${OFF_FIELDS}`;
+  const data = await fetchOffWithRetry(url);
+  return prioritizeSpain(data.products).map(normalizeOffProduct).filter(Boolean);
+}
+async function lookupOffBarcode(code) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("offline");
+  }
+  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(
+    code.trim()
+  )}.json?fields=${OFF_FIELDS}`;
+  const data = await fetchOffWithRetry(url);
+  if (data.status !== 1) return null;
+  return normalizeOffProduct(data.product);
+}
+
+function computeFoodQuantity(food, grams) {
+  const factor = grams / 100;
+  return {
+    grams: Math.round(grams),
+    kcal: Math.round(food.kcal100 * factor),
+    protein: Math.round(food.protein100 * factor * 10) / 10,
+    carbs: Math.round(food.carbs100 * factor * 10) / 10,
+    fat: Math.round(food.fat100 * factor * 10) / 10,
+  };
+}
+function sumDayMacros(dayLog) {
+  const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+  if (!dayLog) return totals;
+  for (const meal of MEALS) {
+    for (const item of dayLog[meal] || []) {
+      totals.kcal += item.kcal || 0;
+      totals.protein += item.protein || 0;
+      totals.carbs += item.carbs || 0;
+      totals.fat += item.fat || 0;
+    }
+  }
+  return {
+    kcal: Math.round(totals.kcal),
+    protein: Math.round(totals.protein * 10) / 10,
+    carbs: Math.round(totals.carbs * 10) / 10,
+    fat: Math.round(totals.fat * 10) / 10,
+  };
+}
+
+/* ============================================================================
    6. UTILIDADES
    ========================================================================== */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -2348,6 +2514,7 @@ function Btn({ children, onClick, variant = "solid", disabled, style }) {
   const variants = {
     solid: { background: C.chalk, color: C.ink },
     signal: { background: C.signal, color: "#FFFFFF" },
+    diet: { background: C.dietAccent, color: "#FFFFFF" },
     ghost: { background: "transparent", color: C.chalk, border: `1px solid ${C.line2}` },
     quiet: { background: C.panel2, color: C.muted, border: `1px solid ${C.line}` },
   };
@@ -2867,7 +3034,7 @@ function ProgressionCard({ prog, compact }) {
 /* ============================================================================
    11. HISTORIAL + GRÁFICA
    ========================================================================== */
-function Chart({ data, metric }) {
+function Chart({ data, metric, color = C.signal }) {
   if (data.length < 2) return null;
   const W = 320,
     H = 110,
@@ -2885,10 +3052,10 @@ function Chart({ data, metric }) {
   const area = `${path} L${pts[pts.length - 1][0].toFixed(1)},${H} L${pts[0][0].toFixed(1)},${H} Z`;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 110, display: "block" }}>
-      <path d={area} fill={C.signal} opacity="0.08" />
-      <path d={path} fill="none" stroke={C.signal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={area} fill={color} opacity="0.08" />
+      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {pts.map((p, i) => (
-        <circle key={i} cx={p[0]} cy={p[1]} r="3" fill={C.ink} stroke={C.signal} strokeWidth="2" />
+        <circle key={i} cx={p[0]} cy={p[1]} r="3" fill={C.ink} stroke={color} strokeWidth="2" />
       ))}
     </svg>
   );
@@ -4911,7 +5078,7 @@ function NutritionForm({ initial, onCancel, onSave }) {
         cursor: "pointer",
         background: active ? C.panel2 : "transparent",
         color: active ? C.chalk : C.dim,
-        border: `1px solid ${active ? C.signal : C.line}`,
+        border: `1px solid ${active ? C.dietAccent : C.line}`,
         fontFamily: FONT,
       }}
     >
@@ -4986,7 +5153,7 @@ function NutritionForm({ initial, onCancel, onSave }) {
           Cancelar
         </Btn>
         <Btn
-          variant="signal"
+          variant="diet"
           disabled={!valid}
           onClick={() =>
             onSave({ sex, age: ageNum, heightCm: heightNum, weightKg: weightNum, activity, goal })
@@ -5024,15 +5191,15 @@ function NutritionResultCard({ targets, isTrainingToday }) {
       style={{
         flex: 1,
         minWidth: 0,
-        background: active ? C.signalDim : C.panel2,
-        border: `1px solid ${active ? C.signal : C.line}`,
+        background: active ? C.dietAccentDim : C.panel2,
+        border: `1px solid ${active ? C.dietAccent : C.line}`,
         borderRadius: 14,
         padding: 14,
       }}
     >
       <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
         <Label>{title}</Label>
-        {active && <span style={{ color: C.signal, fontSize: 10, fontWeight: 800 }}>HOY</span>}
+        {active && <span style={{ color: C.dietAccent, fontSize: 10, fontWeight: 800 }}>HOY</span>}
       </div>
       <div
         style={{
@@ -5075,9 +5242,9 @@ function NutritionResultCard({ targets, isTrainingToday }) {
 function SafetyLimitNotice({ targets }) {
   if (!targets.anyLimited) return null;
   return (
-    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.signal}`, background: C.signalDim }}>
+    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.dietAccent}`, background: C.dietAccentDim }}>
       <div className="flex gap-2" style={{ alignItems: "flex-start" }}>
-        <span style={{ color: C.signal, fontSize: 15, lineHeight: 1.4, flexShrink: 0 }}>⚠</span>
+        <span style={{ color: C.dietAccent, fontSize: 15, lineHeight: 1.4, flexShrink: 0 }}>⚠</span>
         <p style={{ color: C.chalk, fontSize: 13, lineHeight: 1.55, margin: 0 }}>
           Ajustado al mínimo seguro: no se baja del metabolismo basal ({targets.bmr} kcal) ni de un déficit del
           25% sobre el gasto total ({targets.tdee} kcal).
@@ -5091,16 +5258,16 @@ function AdjustmentSuggestionCard({ suggestion, onApply }) {
   if (suggestion.code !== "increase" && suggestion.code !== "decrease") return null;
   const up = suggestion.code === "increase";
   return (
-    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.signal}` }}>
+    <Panel style={{ padding: 16, marginBottom: 16, border: `1px solid ${C.dietAccent}` }}>
       <Label style={{ marginBottom: 8 }}>Ajuste sugerido</Label>
-      <div style={{ color: C.signal, fontSize: 15, fontWeight: 800, marginBottom: 6 }}>
+      <div style={{ color: C.dietAccent, fontSize: 15, fontWeight: 800, marginBottom: 6 }}>
         {up ? "Sube" : "Baja"} {Math.abs(suggestion.deltaKcal)} kcal/día
       </div>
       <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.55, margin: "0 0 14px" }}>
         En las últimas {suggestion.weeks} semanas tu peso cambió a un ritmo de {suggestion.actualWeeklyKg} kg/semana
         (esperado: {suggestion.expectedWeeklyKg} kg/semana). Es solo una sugerencia: se aplica cuando tú quieras.
       </p>
-      <Btn variant="signal" onClick={() => onApply(suggestion.deltaKcal)}>
+      <Btn variant="diet" onClick={() => onApply(suggestion.deltaKcal)}>
         Aplicar ajuste
       </Btn>
     </Panel>
@@ -5137,7 +5304,7 @@ function WeightLogForm({ onLogWeight }) {
           <Stepper value={weight} onChange={setWeight} step={0.1} decimals={1} />
         </div>
         <Btn
-          variant="signal"
+          variant="diet"
           disabled={!valid}
           onClick={() => {
             onLogWeight(Number(weight), date);
@@ -5166,7 +5333,7 @@ function WeightHistorySection({ weights, onDeleteWeight }) {
         }}
       >
         {avgData.length >= 2 ? (
-          <Chart data={avgData} metric="weight" />
+          <Chart data={avgData} metric="weight" color={C.dietAccent} />
         ) : (
           <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "24px 6px" }}>
             Registra un par de días más para ver la gráfica (media móvil de 7 días).
@@ -5253,9 +5420,9 @@ function MealSplitCard({ targets, isTrainingToday, mealCount, onSetMealCount }) 
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: "pointer",
-                background: mealCount === n ? C.signal : "transparent",
+                background: mealCount === n ? C.dietAccent : "transparent",
                 color: mealCount === n ? "#fff" : C.dim,
-                border: `1px solid ${mealCount === n ? C.signal : C.line}`,
+                border: `1px solid ${mealCount === n ? C.dietAccent : C.line}`,
                 fontFamily: FONT,
               }}
             >
@@ -5284,6 +5451,677 @@ function MealSplitCard({ targets, isTrainingToday, mealCount, onSetMealCount }) 
   );
 }
 
+/* --- REGISTRO DE COMIDAS --------------------------------------------------- */
+function FoodResultRow({ food, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center w-full"
+      style={{
+        gap: 12,
+        background: "transparent",
+        border: `1px solid ${C.line}`,
+        borderRadius: 12,
+        padding: "10px 12px",
+        marginBottom: 7,
+        cursor: "pointer",
+        fontFamily: FONT,
+        textAlign: "left",
+      }}
+    >
+      <span style={{ fontSize: 22, flexShrink: 0 }}>{food.emoji}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            color: C.chalk,
+            fontSize: 13,
+            fontWeight: 600,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {food.name}
+        </div>
+        <div style={{ color: C.dim, fontSize: 11, marginTop: 2 }}>
+          {food.brand ? `${food.brand} · ` : ""}
+          {food.kcal100} kcal /100g
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function FoodQuantityPicker({ food, onCancel, onConfirm }) {
+  const [mode, setMode] = useState("grams"); // "grams" | "units"
+  const [grams, setGrams] = useState(100);
+  const [units, setUnits] = useState(1);
+  const [gramsPerUnit, setGramsPerUnit] = useState(100);
+
+  const totalGrams = mode === "grams" ? Number(grams) || 0 : (Number(units) || 0) * (Number(gramsPerUnit) || 0);
+  const computed = computeFoodQuantity(food, totalGrams);
+
+  const inputStyle = {
+    background: C.panel2,
+    border: `1px solid ${C.line}`,
+    borderRadius: 11,
+    padding: "10px 12px",
+    color: C.chalk,
+    fontSize: 16,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: FONT,
+  };
+
+  return (
+    <div style={{ padding: "4px 18px 18px" }}>
+      <div className="flex items-center gap-2" style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 26 }}>{food.emoji}</span>
+        <div style={{ color: C.chalk, fontSize: 15, fontWeight: 700 }}>{food.name}</div>
+      </div>
+
+      <div className="flex gap-2" style={{ marginBottom: 14 }}>
+        {[
+          ["grams", "Gramos"],
+          ["units", "Unidades"],
+        ].map(([k, l]) => (
+          <button
+            key={k}
+            onClick={() => setMode(k)}
+            style={{
+              flex: 1,
+              padding: "10px 6px",
+              borderRadius: 11,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              background: mode === k ? C.panel2 : "transparent",
+              color: mode === k ? C.chalk : C.dim,
+              border: `1px solid ${mode === k ? C.dietAccent : C.line}`,
+              fontFamily: FONT,
+            }}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {mode === "grams" ? (
+        <>
+          <Label style={{ marginBottom: 6 }}>Cantidad (g)</Label>
+          <Stepper value={grams} onChange={setGrams} step={10} />
+        </>
+      ) : (
+        <div className="flex gap-2">
+          <div style={{ flex: 1 }}>
+            <Label style={{ marginBottom: 6 }}>Unidades</Label>
+            <Stepper value={units} onChange={setUnits} step={1} compact />
+          </div>
+          <div style={{ flex: 1 }}>
+            <Label style={{ marginBottom: 6 }}>g por unidad</Label>
+            <input
+              value={gramsPerUnit}
+              onChange={(e) => setGramsPerUnit(e.target.value.replace(/[^\d]/g, ""))}
+              inputMode="numeric"
+              style={{ ...inputStyle, width: "100%", height: 48 }}
+            />
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          background: C.panel2,
+          border: `1px solid ${C.line}`,
+          borderRadius: 12,
+          padding: "14px 16px",
+          margin: "16px 0",
+        }}
+      >
+        <div style={{ color: C.chalk, fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
+          {computed.kcal} <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>kcal</span>
+        </div>
+        <div style={{ color: C.dim, fontSize: 12 }}>
+          {computed.protein}g proteína · {computed.carbs}g hidratos · {computed.fat}g grasa · {computed.grams}g total
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Btn variant="quiet" onClick={onCancel} style={{ flex: 1 }}>
+          Cancelar
+        </Btn>
+        <Btn
+          variant="diet"
+          disabled={totalGrams <= 0}
+          onClick={() => onConfirm({ ...computed, foodId: food.id, name: food.name, emoji: food.emoji })}
+          style={{ flex: 1 }}
+        >
+          Añadir
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function CustomFoodForm({ onCancel, onSave }) {
+  const [name, setName] = useState("");
+  const [kcal100, setKcal100] = useState("");
+  const [protein100, setProtein100] = useState("");
+  const [carbs100, setCarbs100] = useState("");
+  const [fat100, setFat100] = useState("");
+
+  const valid =
+    name.trim().length > 0 &&
+    [kcal100, protein100, carbs100, fat100].every((v) => v !== "" && Number(v) >= 0 && Number.isFinite(Number(v)));
+
+  const inputStyle = {
+    width: "100%",
+    background: C.panel2,
+    border: `1px solid ${C.line}`,
+    borderRadius: 11,
+    padding: "12px 14px",
+    color: C.chalk,
+    fontSize: 16,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: FONT,
+  };
+
+  return (
+    <div style={{ padding: "4px 18px 18px" }}>
+      <Label style={{ marginBottom: 6 }}>Nombre *</Label>
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Ej. Tortilla de la abuela"
+        style={{ ...inputStyle, marginBottom: 14 }}
+      />
+      <Label style={{ marginBottom: 6 }}>Por cada 100 g</Label>
+      <div className="flex gap-2" style={{ marginBottom: 16 }}>
+        {[
+          ["kcal", kcal100, setKcal100],
+          ["Prot g", protein100, setProtein100],
+          ["Carbs g", carbs100, setCarbs100],
+          ["Grasa g", fat100, setFat100],
+        ].map(([ph, val, set]) => (
+          <input
+            key={ph}
+            value={val}
+            onChange={(e) => set(e.target.value.replace(/[^\d.]/g, ""))}
+            inputMode="decimal"
+            placeholder={ph}
+            style={{ ...inputStyle, textAlign: "center", padding: "10px 4px" }}
+          />
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Btn variant="quiet" onClick={onCancel} style={{ flex: 1 }}>
+          Cancelar
+        </Btn>
+        <Btn
+          variant="diet"
+          disabled={!valid}
+          onClick={() =>
+            onSave({
+              id: uid("food-custom"),
+              source: "custom",
+              name: name.trim(),
+              brand: "",
+              emoji: emojiForFood([], name),
+              kcal100: Number(kcal100),
+              protein100: Number(protein100),
+              carbs100: Number(carbs100),
+              fat100: Number(fat100),
+            })
+          }
+          style={{ flex: 1 }}
+        >
+          Guardar
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function FoodPickerSheet({ meal, recentFoods, onAdd, onSaveRecent, onClose }) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null); // "offline" | "error" | null
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    const query = q.trim();
+    if (!query) {
+      setResults([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const t = setTimeout(async () => {
+      try {
+        const items = looksLikeBarcode(query) ? await lookupOffBarcode(query).then((p) => (p ? [p] : [])) : await searchOffFoods(query);
+        setResults(items);
+      } catch (e) {
+        setError(e?.message === "offline" ? "offline" : "error");
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 450);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const recentList = Object.values(recentFoods || {}).sort((a, b) =>
+    (b.lastUsed || "").localeCompare(a.lastUsed || "")
+  );
+
+  const title = creating ? "Alimento propio" : selectedFood ? "Cantidad" : `Añadir a ${meal}`;
+
+  const handlePick = (food) => setSelectedFood(food);
+  const handleConfirmQuantity = (entry) => {
+    onSaveRecent(selectedFood);
+    onAdd(entry);
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(5,5,6,0.86)",
+        zIndex: 60,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 520,
+          maxHeight: "88vh",
+          display: "flex",
+          flexDirection: "column",
+          background: C.ink,
+          borderRadius: "22px 22px 0 0",
+          borderTop: `1px solid ${C.line2}`,
+          paddingBottom: "calc(18px + env(safe-area-inset-bottom, 0px))",
+        }}
+      >
+        <div style={{ width: 40, height: 4, background: C.line2, borderRadius: 4, margin: "10px auto 4px", flexShrink: 0 }} />
+
+        <div className="flex items-center justify-between" style={{ padding: "8px 18px 10px", flexShrink: 0 }}>
+          <Label>{title}</Label>
+          {(selectedFood || creating) && (
+            <button
+              onClick={() => {
+                setSelectedFood(null);
+                setCreating(false);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.dietAccent,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: 0,
+                fontFamily: FONT,
+              }}
+            >
+              ← Volver
+            </button>
+          )}
+        </div>
+
+        {selectedFood ? (
+          <FoodQuantityPicker food={selectedFood} onCancel={() => setSelectedFood(null)} onConfirm={handleConfirmQuantity} />
+        ) : creating ? (
+          <CustomFoodForm
+            onCancel={() => setCreating(false)}
+            onSave={(f) => {
+              setCreating(false);
+              handlePick(f);
+            }}
+          />
+        ) : (
+          <>
+            <div style={{ padding: "0 18px 12px", flexShrink: 0 }}>
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Buscar alimento o pegar código de barras…"
+                style={{
+                  width: "100%",
+                  background: C.panel2,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 11,
+                  padding: "12px 14px",
+                  color: C.chalk,
+                  fontSize: 16,
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: FONT,
+                  marginBottom: 10,
+                }}
+              />
+              <button
+                onClick={() => setCreating(true)}
+                className="flex items-center justify-center w-full"
+                style={{
+                  background: "transparent",
+                  border: `1px dashed ${C.line2}`,
+                  borderRadius: 11,
+                  padding: "11px 14px",
+                  color: C.chalk,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: FONT,
+                }}
+              >
+                + Crear alimento propio
+              </button>
+            </div>
+
+            <div style={{ overflowY: "auto", padding: "0 18px 8px" }}>
+              {!q.trim() && (
+                <>
+                  <Label style={{ marginBottom: 6 }}>Recientes</Label>
+                  {recentList.length === 0 && (
+                    <div style={{ color: C.muted, fontSize: 13, padding: "10px 0 20px" }}>
+                      Aún no tienes alimentos recientes. Búscalos por nombre o código de barras.
+                    </div>
+                  )}
+                  {recentList.map((f) => (
+                    <FoodResultRow key={f.id} food={f} onClick={() => handlePick(f)} />
+                  ))}
+                </>
+              )}
+
+              {q.trim() && loading && (
+                <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "20px 0" }}>Buscando…</div>
+              )}
+              {q.trim() && !loading && error === "offline" && (
+                <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.6, padding: "12px 0" }}>
+                  Sin conexión: no se puede buscar en Open Food Facts ahora mismo. Prueba con un alimento reciente
+                  (abajo, si borras la búsqueda) o crea uno propio.
+                </div>
+              )}
+              {q.trim() && !loading && error === "error" && (
+                <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.6, padding: "12px 0" }}>
+                  No se pudo completar la búsqueda. Inténtalo de nuevo en unos segundos.
+                </div>
+              )}
+              {q.trim() && !loading && !error && results.length === 0 && (
+                <div style={{ color: C.muted, fontSize: 13, textAlign: "center", padding: "20px 0" }}>
+                  Sin resultados para "{q}"
+                </div>
+              )}
+              {q.trim() &&
+                !loading &&
+                results.map((f) => <FoodResultRow key={f.id} food={f} onClick={() => handlePick(f)} />)}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FoodWeekStrip({ selected, onSelect, food }) {
+  const week = useMemo(() => weekOf(selected), [selected]);
+  const d0 = fromISO(week[0]);
+  const d6 = fromISO(week[6]);
+  const monthLabel =
+    d0.getMonth() === d6.getMonth()
+      ? `${MONTHS[d0.getMonth()]} ${d0.getFullYear()}`
+      : `${MONTHS[d0.getMonth()].slice(0, 3)} – ${MONTHS[d6.getMonth()].slice(0, 3)} ${d6.getFullYear()}`;
+
+  const Arrow = ({ dir }) => (
+    <button
+      onClick={() => onSelect(addDays(selected, dir * 7))}
+      style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 10px", lineHeight: 0 }}
+      aria-label={dir < 0 ? "Semana anterior" : "Semana siguiente"}
+    >
+      <svg width="13" height="21" viewBox="0 0 13 21" fill="none">
+        <path
+          d={dir < 0 ? "M11 2L3 10.5L11 19" : "M2 2L10 10.5L2 19"}
+          stroke={C.dietAccent}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+
+  return (
+    <div style={{ padding: "0 0 14px" }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+        <Arrow dir={-1} />
+        <div style={{ color: C.chalk, fontSize: 17, fontWeight: 700, letterSpacing: "-0.01em" }}>{monthLabel}</div>
+        <Arrow dir={1} />
+      </div>
+      <div className="flex" style={{ gap: 6 }}>
+        {week.map((dt, i) => {
+          const hasFood = MEALS.some((m) => (food[dt]?.[m] || []).length > 0);
+          const isSel = dt === selected;
+          const isToday = dt === todayISO();
+          return (
+            <button
+              key={dt}
+              onClick={() => onSelect(dt)}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                aspectRatio: "1 / 1",
+                borderRadius: "50%",
+                border: `2.5px solid ${isSel ? C.dietAccent : hasFood ? C.dietAccent : C.line}`,
+                background: isSel ? C.dietAccent : "transparent",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: FONT,
+                padding: 0,
+              }}
+            >
+              <span style={{ fontSize: 10, fontWeight: 600, color: isSel ? "#fff" : C.muted, lineHeight: 1.3 }}>
+                {WD[i]}
+              </span>
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: isSel ? "#fff" : C.chalk,
+                  fontVariantNumeric: "tabular-nums",
+                  lineHeight: 1.15,
+                  textDecoration: isToday && !isSel ? "underline" : "none",
+                  textUnderlineOffset: 2,
+                }}
+              >
+                {fromISO(dt).getDate()}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DailyFoodSummary({ consumed, target }) {
+  const Bar = ({ label, value, goal }) => {
+    const pct = goal > 0 ? Math.min(100, Math.round((value / goal) * 100)) : 0;
+    return (
+      <div style={{ marginBottom: 10 }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: 5 }}>
+          <Label style={{ marginBottom: 0 }}>{label}</Label>
+          <span style={{ color: C.chalk, fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
+            {value}g / {goal}g
+          </span>
+        </div>
+        <div style={{ height: 6, background: C.line, borderRadius: 3 }}>
+          <div style={{ width: `${pct}%`, height: "100%", background: C.dietAccent, borderRadius: 3 }} />
+        </div>
+      </div>
+    );
+  };
+  return (
+    <Panel style={{ padding: 16, marginBottom: 16 }}>
+      <div className="flex items-end justify-between" style={{ marginBottom: 14 }}>
+        <Label>Consumido</Label>
+        <div style={{ color: C.chalk, fontSize: 20, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>
+          {consumed.kcal}
+          <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>
+            {" "}
+            / {target ? target.calories : "—"} kcal
+          </span>
+        </div>
+      </div>
+      {target ? (
+        <>
+          <Bar label="Proteína" value={consumed.protein} goal={target.protein} />
+          <Bar label="Hidratos" value={consumed.carbs} goal={target.carbs} />
+          <Bar label="Grasa" value={consumed.fat} goal={target.fat} />
+        </>
+      ) : (
+        <p style={{ color: C.muted, fontSize: 13, lineHeight: 1.5, margin: 0 }}>
+          Completa la calculadora de arriba para ver tu objetivo diario junto al consumo.
+        </p>
+      )}
+    </Panel>
+  );
+}
+
+function MealCard({ meal, items, onAdd, onDeleteItem }) {
+  const totals = items.reduce(
+    (a, it) => ({
+      kcal: a.kcal + it.kcal,
+      protein: a.protein + it.protein,
+      carbs: a.carbs + it.carbs,
+      fat: a.fat + it.fat,
+    }),
+    { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+  );
+  return (
+    <Panel style={{ padding: 16, marginBottom: 12 }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: items.length ? 10 : 0 }}>
+        <div>
+          <div style={{ color: C.chalk, fontSize: 15, fontWeight: 700 }}>{meal}</div>
+          <div style={{ color: C.dim, fontSize: 12, marginTop: 2, fontVariantNumeric: "tabular-nums" }}>
+            {Math.round(totals.kcal)} kcal · {Math.round(totals.protein)}P {Math.round(totals.carbs)}C{" "}
+            {Math.round(totals.fat)}G
+          </div>
+        </div>
+        <button
+          onClick={onAdd}
+          aria-label={`Añadir a ${meal}`}
+          style={{
+            width: 32,
+            height: 32,
+            flexShrink: 0,
+            borderRadius: "50%",
+            background: C.dietAccent,
+            color: "#fff",
+            border: "none",
+            fontSize: 18,
+            lineHeight: 1,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          +
+        </button>
+      </div>
+      {items.map((it) => (
+        <div
+          key={it.id}
+          className="flex items-center"
+          style={{ gap: 10, padding: "9px 0", borderTop: `1px solid ${C.line}` }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>{it.emoji}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                color: C.chalk,
+                fontSize: 13,
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {it.name}
+            </div>
+            <div style={{ color: C.dim, fontSize: 11, marginTop: 1 }}>
+              {it.grams}g · {it.kcal} kcal
+            </div>
+          </div>
+          <button
+            onClick={() => onDeleteItem(it.id)}
+            aria-label={`Quitar ${it.name}`}
+            style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", padding: 4, fontSize: 13 }}
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </Panel>
+  );
+}
+
+function FoodDiary({ food, foods, schedule, nutrition, onLogFood, onDeleteFoodItem, onSaveRecentFood }) {
+  const [selected, setSelected] = useState(todayISO());
+  const [addingMeal, setAddingMeal] = useState(null);
+
+  const dayLog = food[selected] || {};
+  const consumed = sumDayMacros(dayLog);
+  const dayId = dayIdFor(selected, schedule);
+  const targets = nutrition.profile ? computeNutritionTargets(nutrition.profile, nutrition.adjustment) : null;
+  const dayTarget = targets ? (dayId ? targets.training : targets.rest) : null;
+
+  return (
+    <div>
+      <FoodWeekStrip selected={selected} onSelect={setSelected} food={food} />
+      <DailyFoodSummary consumed={consumed} target={dayTarget} />
+      {MEALS.map((meal) => (
+        <MealCard
+          key={meal}
+          meal={meal}
+          items={dayLog[meal] || []}
+          onAdd={() => setAddingMeal(meal)}
+          onDeleteItem={(itemId) => onDeleteFoodItem(selected, meal, itemId)}
+        />
+      ))}
+      {addingMeal && (
+        <FoodPickerSheet
+          meal={addingMeal}
+          recentFoods={foods}
+          onSaveRecent={onSaveRecentFood}
+          onAdd={(entry) => {
+            onLogFood(selected, addingMeal, entry);
+            setAddingMeal(null);
+          }}
+          onClose={() => setAddingMeal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 function DietaView({
   nutrition,
   schedule,
@@ -5292,6 +6130,11 @@ function DietaView({
   onDeleteWeight,
   onApplyAdjustment,
   onSetMealCount,
+  food,
+  foods,
+  onLogFood,
+  onDeleteFoodItem,
+  onSaveRecentFood,
 }) {
   const [editing, setEditing] = useState(false);
   const { profile, weights, adjustment, mealCount } = nutrition;
@@ -5336,7 +6179,7 @@ function DietaView({
                 style={{
                   background: "none",
                   border: "none",
-                  color: C.signal,
+                  color: C.dietAccent,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
@@ -5351,6 +6194,22 @@ function DietaView({
 
           <NutritionResultCard targets={targets} isTrainingToday={isTrainingToday} />
           <SafetyLimitNotice targets={targets} />
+        </>
+      )}
+
+      <Label style={{ marginBottom: 12 }}>Registro de comidas</Label>
+      <FoodDiary
+        food={food}
+        foods={foods}
+        schedule={schedule}
+        nutrition={nutrition}
+        onLogFood={onLogFood}
+        onDeleteFoodItem={onDeleteFoodItem}
+        onSaveRecentFood={onSaveRecentFood}
+      />
+
+      {profile && !editing && (
+        <>
           <MealSplitCard
             targets={targets}
             isTrainingToday={isTrainingToday}
@@ -5385,10 +6244,12 @@ export default function App() {
   const [swaps, setSwaps] = useState({});
   const [customExercises, setCustomExercises] = useState({});
   const [nutrition, setNutrition] = useState(NUTRITION_DEFAULT);
+  const [food, setFood] = useState({});
+  const [foods, setFoods] = useState({});
 
   useEffect(() => {
     (async () => {
-      const [l, cfg, ses, md, sw, cex, nut] = await Promise.all([
+      const [l, cfg, ses, md, sw, cex, nut, fd, fds] = await Promise.all([
         loadKey(K_LOG, {}),
         loadKey(K_CFG, {}),
         loadKey(K_SESSION, null),
@@ -5396,6 +6257,8 @@ export default function App() {
         loadKey(K_SWAPS, {}),
         loadKey(K_EXERCISES, {}),
         loadKey(K_NUTRITION, NUTRITION_DEFAULT),
+        loadKey(K_FOOD, {}),
+        loadKey(K_FOODS, {}),
       ]);
       setLog(l || {});
       setMedia(md || {});
@@ -5411,6 +6274,8 @@ export default function App() {
       setSwaps(sw || {});
       setCustomExercises(cex || {});
       setNutrition(nut || NUTRITION_DEFAULT);
+      setFood(fd || {});
+      setFoods(fds || {});
       setReady(true);
     })();
   }, []);
@@ -5571,6 +6436,40 @@ export default function App() {
     setNutrition((prev) => {
       const next = { ...prev, mealCount };
       saveKey(K_NUTRITION, next);
+      return next;
+    });
+  }, []);
+
+  const logFood = useCallback((dateISO, meal, entry) => {
+    setFood((prev) => {
+      const day = prev[dateISO] || {};
+      const items = day[meal] || [];
+      const next = {
+        ...prev,
+        [dateISO]: { ...day, [meal]: [...items, { ...entry, id: uid("fooditem") }] },
+      };
+      saveKey(K_FOOD, next);
+      return next;
+    });
+  }, []);
+
+  const deleteFoodItem = useCallback((dateISO, meal, itemId) => {
+    setFood((prev) => {
+      const day = prev[dateISO];
+      if (!day || !day[meal]) return prev;
+      const next = {
+        ...prev,
+        [dateISO]: { ...day, [meal]: day[meal].filter((it) => it.id !== itemId) },
+      };
+      saveKey(K_FOOD, next);
+      return next;
+    });
+  }, []);
+
+  const saveRecentFood = useCallback((foodItem) => {
+    setFoods((prev) => {
+      const next = { ...prev, [foodItem.id]: { ...foodItem, lastUsed: todayISO() } };
+      saveKey(K_FOODS, next);
       return next;
     });
   }, []);
@@ -5759,6 +6658,11 @@ export default function App() {
                 onDeleteWeight={deleteWeight}
                 onApplyAdjustment={applyNutritionAdjustment}
                 onSetMealCount={setMealCount}
+                food={food}
+                foods={foods}
+                onLogFood={logFood}
+                onDeleteFoodItem={deleteFoodItem}
+                onSaveRecentFood={saveRecentFood}
               />
             )}
             {view === "progreso" && (
